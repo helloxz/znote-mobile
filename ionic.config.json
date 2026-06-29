@@ -1,0 +1,7 @@
+{
+  "name": "znote-mobile",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}

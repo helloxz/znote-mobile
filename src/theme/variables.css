@@ -1,0 +1,131 @@
+/* ============================================================
+ * znote-mobile 主题设计规范（对齐小米笔记风格）
+ * 仅浅色模式；干净、现代、克制
+ * 文档参考: http://ionicframework.com/docs/theming/
+ * ============================================================ */
+
+:root {
+  /* ---------- Ionic 组件变量（让内置组件直接套用配色） ---------- */
+
+  /* 品牌主色：小米橙 #FF6900 */
+  --ion-color-primary: #ff6900;
+  --ion-color-primary-rgb: 255, 105, 0;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #e05c00;   /* 按下/加深态 */
+  --ion-color-primary-tint: #ff781a;   /* 悬停/减淡态 */
+
+  /* 成功（绿） */
+  --ion-color-success: #00b42a;
+  --ion-color-success-rgb: 0, 180, 42;
+  --ion-color-success-contrast: #ffffff;
+  --ion-color-success-contrast-rgb: 255, 255, 255;
+  --ion-color-success-shade: #009e25;
+  --ion-color-success-tint: #1abb3f;
+
+  /* 警告（琥珀，与主橙区分） */
+  --ion-color-warning: #ff9f0a;
+  --ion-color-warning-rgb: 255, 159, 10;
+  --ion-color-warning-contrast: #ffffff;
+  --ion-color-warning-contrast-rgb: 255, 255, 255;
+  --ion-color-warning-shade: #e08c09;
+  --ion-color-warning-tint: #ffa923;
+
+  /* 危险/错误/删除（红） */
+  --ion-color-danger: #f53f3f;
+  --ion-color-danger-rgb: 245, 63, 63;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #d83838;
+  --ion-color-danger-tint: #f65252;
+
+  /* 全局背景与文字 */
+  --ion-background-color: #f7f8fa;            /* 页面背景：浅灰 */
+  --ion-background-color-rgb: 247, 248, 250;
+  --ion-text-color: #1d2129;                  /* 主文字：近黑 */
+  --ion-text-color-rgb: 29, 33, 41;
+
+  /* 顶部工具栏 */
+  --ion-toolbar-background: #ffffff;
+  --ion-toolbar-color: #1d2129;
+
+  /* 底部标签栏 */
+  --ion-tab-bar-background: #ffffff;
+  --ion-tab-bar-color: #86909c;               /* 未选中图标/文字 */
+  --ion-tab-bar-color-selected: #ff6900;      /* 选中态：小米橙 */
+
+  /* 分割线 / 列表项背景 */
+  --ion-border-color: #e5e6eb;
+  --ion-item-background: #ffffff;
+
+  /* 字体：优先小米 MI Lan Pro，回退系统字体 */
+  --ion-font-family: "MI Lan Pro", -apple-system, BlinkMacSystemFont,
+    "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+
+  /* ---------- 应用设计令牌（自定义组件引用） ---------- */
+
+  /* 主色衍生（用于悬停/按下/浅底/对比） */
+  --z-primary: #ff6900;
+  --z-primary-hover: #f56200;
+  --z-primary-pressed: #e55800;
+  --z-primary-bg: #fff1e5;       /* 选中行底色、标签底色 */
+  --z-primary-contrast: #ffffff;
+
+  /* 中性色 - 文字 */
+  --z-text-primary: #1d2129;     /* 标题、正文 */
+  --z-text-secondary: #4e5969;    /* 描述、时间戳 */
+  --z-text-tertiary: #86909c;     /* 占位符、提示 */
+  --z-text-disabled: #c9cdd4;     /* 禁用 */
+  --z-text-inverse: #ffffff;      /* 深色/主色背景上的文字 */
+
+  /* 中性色 - 背景 */
+  --z-bg-page: #f7f8fa;           /* 页面背景 */
+  --z-bg-surface: #ffffff;        /* 卡片 / 工具栏 / 弹层 */
+  --z-bg-subtle: #f2f3f5;         /* 次级背景：输入框底、分组块 */
+
+  /* 中性色 - 边框 */
+  --z-border: #e5e6eb;
+  --z-border-light: #f2f3f5;
+
+  /* 图标 */
+  --z-icon-default: #86909c;
+  --z-icon-active: #ff6900;
+
+  /* 功能色 */
+  --z-success: #00b42a;
+  --z-warning: #ff9f0a;
+  --z-danger: #f53f3f;
+  --z-info: #ff6900;             /* 信息色，同主色保持克制 */
+
+  /* 字号 / 行高 */
+  --z-fs-caption: 12px;   /* 时间戳、辅助标注 */
+  --z-fs-body-sm: 13px;   /* 列表摘要 */
+  --z-fs-body: 14px;      /* 默认正文 */
+  --z-fs-body-lg: 16px;   /* 笔记内容正文 */
+  --z-fs-subtitle: 17px;  /* 副标题 */
+  --z-fs-title: 20px;     /* 页面标题 */
+  --z-fs-title-lg: 24px;  /* 大标题 */
+  --z-fs-headline: 28px;  /* 头部展示标题 */
+
+  /* 圆角 */
+  --z-radius-xs: 4px;     /* 标签 */
+  --z-radius-sm: 6px;      /* 输入框、小标签 */
+  --z-radius-md: 10px;     /* 按钮、列表项 */
+  --z-radius-lg: 14px;     /* 卡片、弹层 */
+  --z-radius-xl: 20px;     /* 底部弹起 sheet */
+  --z-radius-pill: 999px;  /* 胶囊按钮、tag */
+
+  /* 阴影（克制，低透明度） */
+  --z-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --z-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.05);
+  --z-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --z-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+
+  /* 间距 */
+  --z-space-xs: 4px;
+  --z-space-sm: 8px;
+  --z-space-md: 12px;
+  --z-space-lg: 16px;
+  --z-space-xl: 24px;
+  --z-space-xxl: 32px;
+}
