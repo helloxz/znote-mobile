@@ -65,6 +65,16 @@ export default {
     // 通用对话框按钮
     "note.dialog.confirm": "确定",
 
+    // 笔记详情页
+    "note.detail.edit": "编辑",
+    "note.detail.preview": "预览",
+    "note.detail.save": "保存",
+    "note.detail.titlePlaceholder": "输入笔记标题",
+    "note.detail.editPlaceholder": "开始编写...",
+    "note.detail.saveSuccess": "已保存",
+    "note.detail.saveFailed": "保存失败，请重试",
+    "note.detail.loadFailed": "笔记加载失败",
+
     // 登录页
     "login.title": "ZNote",
     "login.subtitle": "登录你的笔记账号",

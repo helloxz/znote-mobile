@@ -325,9 +325,9 @@ const onDragEnd = async () => {
   }
 };
 
-/** 短按笔记：选中（功能预留，暂不跳转） */
-const onNoteSelect = (_note: Note) => {
-  // TODO: 后续接入笔记详情页
+/** 短按笔记：进入笔记详情子页面（预览态） */
+const onNoteSelect = (note: Note) => {
+  router.push(`/note/${note.id}`);
 };
 
 /** 长按笔记：弹出 Action Sheet 菜单 */

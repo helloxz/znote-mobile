@@ -11,6 +11,11 @@ export default defineConfig({
     vue(),
     legacy()
   ],
+  // 开发服务器配置：监听 0.0.0.0 允许内网其他设备访问
+  server: {
+    host: '0.0.0.0',
+    port:8000,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

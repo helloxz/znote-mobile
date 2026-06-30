@@ -65,6 +65,16 @@ export default {
     // Dialog button
     "note.dialog.confirm": "Confirm",
 
+    // Note detail page
+    "note.detail.edit": "Edit",
+    "note.detail.preview": "Preview",
+    "note.detail.save": "Save",
+    "note.detail.titlePlaceholder": "Enter note title",
+    "note.detail.editPlaceholder": "Start writing...",
+    "note.detail.saveSuccess": "Saved",
+    "note.detail.saveFailed": "Save failed, please retry",
+    "note.detail.loadFailed": "Failed to load note",
+
     // Login page
     "login.title": "ZNote",
     "login.subtitle": "Sign in to your note account",

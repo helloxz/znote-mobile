@@ -117,6 +117,17 @@ export function searchNotes(notebookId: number, keyword: string) {
 }
 
 /**
+ * 获取单条笔记详情（含完整 content，用于详情子页独立渲染）
+ * 路由：GET /api/user/note/detail?id=<noteId>
+ * 直接访问/刷新详情页时使用，列表已含 content 时无需调用
+ */
+export function fetchNoteById(id: number) {
+    return req.get<ApiResponse<Note>>("/api/user/note/detail", {
+        params: { id },
+    });
+}
+
+/**
  * 获取回收站笔记列表（已软删除，最多 200 条，按删除时间倒序）
  * 路由：GET /api/user/note/trash
  */

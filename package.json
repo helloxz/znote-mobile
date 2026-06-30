@@ -18,6 +18,8 @@
     "@capacitor/keyboard": "8.0.5",
     "@capacitor/preferences": "^8.0.1",
     "@capacitor/status-bar": "8.0.2",
+    "@incremark/theme": "^1.0.2",
+    "@incremark/vue": "^1.0.2",
     "@ionic/vue": "^8.0.0",
     "@ionic/vue-router": "^8.0.0",
     "axios": "^1.18.1",
@@ -43,6 +45,9 @@
     "vite": "^5.0.0",
     "vitest": "^0.34.6",
     "vue-tsc": "^2.1.10"
+  },
+  "ionic:serve": {
+    "host": "0.0.0.0"
   },
   "description": "An Ionic project"
 }

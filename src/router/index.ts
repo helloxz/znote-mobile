@@ -33,6 +33,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/change-password',
     component: () => import('@/views/ChangePasswordView.vue')
+  },
+  {
+    // 笔记详情子页：顶层路由（不在 TabsPage children 内），底部 Tab 栏自动隐藏
+    path: '/note/:noteId',
+    component: () => import('@/views/NoteDetailView.vue')
   }
 ]
 
