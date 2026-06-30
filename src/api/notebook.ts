@@ -116,3 +116,28 @@ export function searchNotes(notebookId: number, keyword: string) {
     });
 }
 
+/**
+ * 获取回收站笔记列表（已软删除，最多 200 条，按删除时间倒序）
+ * 路由：GET /api/user/note/trash
+ */
+export function fetchTrashNotes() {
+    return req.get<ApiResponse<Note[]>>("/api/user/note/trash");
+}
+
+/**
+ * 清空回收站（批量硬删除所有已软删除笔记）
+ * 路由：POST /api/user/note/trash/empty
+ * 返回 { deleted: number } 表示删除的笔记数量
+ */
+export function emptyTrash() {
+    return req.post<ApiResponse<{ deleted: number }>>("/api/user/note/trash/empty");
+}
+
+/**
+ * 彻底删除单条笔记（硬删除，含历史版本和关联文件）
+ * 路由：POST /api/user/note/permanent_delete，body：{ id }
+ */
+export function permanentDeleteNote(id: number) {
+    return req.post<ApiResponse<null>>("/api/user/note/permanent_delete", { id });
+}
+

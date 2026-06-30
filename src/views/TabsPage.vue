@@ -13,9 +13,9 @@
           <ion-label>{{ t("tabs.shares") }}</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="me" href="/me">
-          <ion-icon aria-hidden="true" :icon="personOutline" />
-          <ion-label>{{ t("tabs.me") }}</ion-label>
+        <ion-tab-button tab="trash" href="/trash">
+          <ion-icon aria-hidden="true" :icon="trashOutline" />
+          <ion-label>{{ t("tabs.trash") }}</ion-label>
         </ion-tab-button>
       </ion-tab-bar>
     </ion-tabs>
@@ -32,7 +32,7 @@ import {
   IonPage,
   IonRouterOutlet,
 } from "@ionic/vue";
-import { bookOutline, shareOutline, personOutline } from "ionicons/icons";
+import { bookOutline, shareOutline, trashOutline } from "ionicons/icons";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

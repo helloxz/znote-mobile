@@ -29,6 +29,7 @@ export interface Note {
     content: string;
     is_pinned: number; // 0/1
     is_deleted: number; // 0/1
+    deleted_at?: number | string | null; // 软删除时间（回收站列表会返回）
     sort_order: number;
     created_at: number | string;
     updated_at: number | string;

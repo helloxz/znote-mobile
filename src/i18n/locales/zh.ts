@@ -1,111 +1,81 @@
 export default {
     // 应用名
-    app: {
-        name: "ZNote",
-    },
+    "app.name": "ZNote",
 
     // 底部 Tab 标签
-    tabs: {
-        notes: "笔记",
-        shares: "我的分享",
-        me: "我的",
-    },
+    "tabs.notes": "笔记",
+    "tabs.shares": "我的分享",
+    "tabs.trash": "回收站",
 
     // 占位提示文案
-    placeholder: {
-        me: "个人中心开发中",
-    },
+    "placeholder.me": "个人中心开发中",
 
     // 笔记页
-    note: {
-        title: "ZNote",
-        searchPlaceholder: "输入至少3个字符进行搜索",
-        notebooks: "笔记本",
-        switchNotebook: "切换笔记本",
-        categories: "分类",
-        empty: "暂无内容",
-        loading: "加载中...",
-        untitled: "无标题",
-        // 搜索
-        search: {
-            empty: "未找到相关笔记",
-        },
-        // 笔记列表操作菜单
-        list: {
-            pin: "置顶",
-            unpin: "取消置顶",
-            share: "创建分享",
-            move: "移动笔记",
-            trash: "移入回收站",
-            cancel: "取消",
-            "pin.success": "已置顶",
-            "unpin.success": "已取消置顶",
-            "sort.success": "排序成功",
-            "sort.failed": "排序失败，请重试",
-            "trash.success": "已移入回收站",
-            feature: {
-                comingSoon: "功能开发中",
-            },
-        },
-        // 设置菜单项
-        menu: {
-            changePassword: "修改密码",
-            logout: "退出登录",
-        },
-        // 修改密码页
-        password: {
-            title: "修改密码",
-            old: "旧密码",
-            new: "新密码",
-            repeat: "确认新密码",
-            placeholder: {
-                old: "输入旧密码",
-                new: "输入新密码",
-                repeat: "再次输入新密码",
-            },
-            submit: "确认修改",
-            success: "密码修改成功",
-            fieldsRequired: "请填写所有密码字段",
-            notMatch: "两次输入的新密码不一致",
-            logoutCountdown: "密码修改成功，{seconds} 秒后自动退出登录",
-        },
-        // 分类操作菜单
-        category: {
-            renameText: "重命名",
-            deleteText: "删除分类",
-            cancel: "取消",
-            rename: {
-                title: "重命名分类",
-                placeholder: "请输入新名称",
-                success: "重命名成功",
-            },
-            delete: {
-                title: "删除分类",
-                warning: "「{title}」删除后不可恢复，其下笔记将放入回收站",
-                hint: "请输入分类名称确认",
-                confirmText: "确认删除",
-                success: "删除成功",
-            },
-        },
-        // 通用对话框按钮
-        dialog: {
-            confirm: "确定",
-        },
-    },
+    "note.title": "ZNote",
+    "note.searchPlaceholder": "输入至少3个字符进行搜索",
+    "note.notebooks": "笔记本",
+    "note.switchNotebook": "切换笔记本",
+    "note.categories": "分类",
+    "note.empty": "暂无内容",
+    "note.loading": "加载中...",
+    "note.untitled": "无标题",
+    // 搜索
+    "note.search.empty": "未找到相关笔记",
+    // 笔记列表操作菜单
+    "note.list.pin": "置顶",
+    "note.list.unpin": "取消置顶",
+    "note.list.share": "创建分享",
+    "note.list.move": "移动笔记",
+    "note.list.trash": "移入回收站",
+    "note.list.cancel": "取消",
+    "note.list.pin.success": "已置顶",
+    "note.list.unpin.success": "已取消置顶",
+    "note.list.sort.success": "排序成功",
+    "note.list.sort.failed": "排序失败，请重试",
+    "note.list.trash.success": "已移入回收站",
+    "note.list.feature.comingSoon": "功能开发中",
+    // 设置菜单项
+    "note.menu.changePassword": "修改密码",
+    "note.menu.logout": "退出登录",
+    // 修改密码页
+    "note.password.title": "修改密码",
+    "note.password.old": "旧密码",
+    "note.password.new": "新密码",
+    "note.password.repeat": "确认新密码",
+    "note.password.placeholder.old": "输入旧密码",
+    "note.password.placeholder.new": "输入新密码",
+    "note.password.placeholder.repeat": "再次输入新密码",
+    "note.password.submit": "确认修改",
+    "note.password.success": "密码修改成功",
+    "note.password.fieldsRequired": "请填写所有密码字段",
+    "note.password.notMatch": "两次输入的新密码不一致",
+    "note.password.logoutCountdown": "密码修改成功，{seconds} 秒后自动退出登录",
+    // 分类操作菜单
+    "note.category.renameText": "重命名",
+    "note.category.deleteText": "删除分类",
+    "note.category.cancel": "取消",
+    "note.category.rename.title": "重命名分类",
+    "note.category.rename.placeholder": "请输入新名称",
+    "note.category.rename.success": "重命名成功",
+    "note.category.delete.title": "删除分类",
+    "note.category.delete.warning": "「{title}」删除后不可恢复，其下笔记将放入回收站",
+    "note.category.delete.hint": "请输入分类名称确认",
+    "note.category.delete.confirmText": "确认删除",
+    "note.category.delete.success": "删除成功",
+    // 通用对话框按钮
+    "note.dialog.confirm": "确定",
 
     // 登录页
-    login: {
-        title: "ZNote",
-        subtitle: "登录你的笔记账号",
-        server: "服务器地址",
-        serverPlaceholder: "https://www.example.com",
-        username: "用户名 / 邮箱",
-        usernamePlaceholder: "输入用户名或邮箱",
-        password: "密码",
-        passwordPlaceholder: "输入密码",
-        submit: "登录",
-        logging: "登录中...",
-    },
+    "login.title": "ZNote",
+    "login.subtitle": "登录你的笔记账号",
+    "login.server": "服务器地址",
+    "login.serverPlaceholder": "https://www.example.com",
+    "login.username": "用户名 / 邮箱",
+    "login.usernamePlaceholder": "输入用户名或邮箱",
+    "login.password": "密码",
+    "login.passwordPlaceholder": "输入密码",
+    "login.submit": "登录",
+    "login.logging": "登录中...",
 
     // ========== msg key 映射 ==========
     // 后端返回的 msg 直接作为 i18n key（点分段式命名），调用方 t(msg) 即可翻译
@@ -139,24 +109,29 @@ export default {
     unknown: "操作失败，请稍后重试",
 
     // ========== 分享 ==========
-    shares: {
-        title: "我的分享",
-        search_placeholder: "输入至少2个字符筛选",
-        empty: "暂无分享",
-        no_results: "未找到匹配的分享",
-        never_expire: "永不过期",
-        copy_link: "复制分享链接",
-        delete: "删除分享",
-        delete_confirm: "确定删除该分享吗？",
-        "delete.success": "删除成功",
-        "copy.success": "已复制到剪贴板",
-        status: {
-            active: "有效",
-            revoked: "已撤销",
-        },
-        result: {
-            url: "访问地址",
-            password: "密码",
-        },
-    },
+    "shares.title": "我的分享",
+    "shares.search_placeholder": "输入至少2个字符筛选",
+    "shares.empty": "暂无分享",
+    "shares.no_results": "未找到匹配的分享",
+    "shares.never_expire": "永不过期",
+    "shares.copy_link": "复制分享链接",
+    "shares.delete": "删除分享",
+    "shares.delete_confirm": "确定删除该分享吗？",
+    "shares.delete.success": "删除成功",
+    "shares.copy.success": "已复制到剪贴板",
+    "shares.status.active": "有效",
+    "shares.status.revoked": "已撤销",
+    "shares.result.url": "访问地址",
+    "shares.result.password": "密码",
+
+    // ========== 回收站 ==========
+    "trash.title": "回收站",
+    "trash.empty": "回收站为空",
+    "trash.empty.button": "清空",
+    "trash.empty.confirm": "确定清空回收站吗？此操作不可恢复",
+    "trash.empty.success": "回收站已清空",
+    "trash.permanent_delete": "彻底删除",
+    "trash.permanent_delete.confirm": "确定彻底删除该笔记吗？此操作不可恢复",
+    "trash.permanent_delete.success": "已彻底删除",
+    "trash.move": "移动笔记",
 };

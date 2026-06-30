@@ -21,8 +21,8 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/ShareView.vue')
       },
       {
-        path: 'me',
-        component: () => import('@/views/MeView.vue')
+        path: 'trash',
+        component: () => import('@/views/TrashView.vue')
       }
     ]
   },
