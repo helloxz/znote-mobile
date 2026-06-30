@@ -64,6 +64,18 @@
         </div>
       </div>
     </ion-content>
+
+    <!-- 移动笔记弹窗 -->
+    <MoveCategoryModal
+      :show="showMoveNoteModal"
+      type="note"
+      :source-id="moveNoteId"
+      :source-name="moveNoteName"
+      :category-tree="noteStore.currentCategoryTree"
+      @confirm="onMoveNoteConfirm"
+      @cancel="onMoveNoteCancel"
+      @update:show="showMoveNoteModal = $event"
+    />
   </ion-page>
 </template>
 
@@ -80,8 +92,12 @@ import {
   toastController,
 } from "@ionic/vue";
 import { trashOutline, timeOutline } from "ionicons/icons";
-import { fetchTrashNotes, emptyTrash, permanentDeleteNote } from "@/api/notebook";
+import { fetchTrashNotes, emptyTrash, permanentDeleteNote, updateNote } from "@/api/notebook";
+import { useNoteStore } from "@/stores/note";
+import MoveCategoryModal from "@/components/note/MoveCategoryModal.vue";
 import type { Note } from "@/types/note";
+
+const noteStore = useNoteStore();
 
 const { t } = useI18n();
 
@@ -92,6 +108,11 @@ const contentRef = ref<InstanceType<typeof IonContent> | null>(null);
 const trashNotes = ref<Note[]>([]);
 const loading = ref(false);
 const emptying = ref(false);
+
+// 移动笔记弹窗状态
+const showMoveNoteModal = ref(false);
+const moveNoteId = ref(0);
+const moveNoteName = ref("");
 
 /** 格式化日期：YYYY/MM/DD HH:mm */
 const formatDate = (ts: number | string | null | undefined): string => {
@@ -119,6 +140,10 @@ const loadTrashNotes = async () => {
 
 onMounted(() => {
   loadTrashNotes();
+  // 确保分类树已加载（移动笔记时需要）
+  if (!noteStore.notebookTreeLoaded) {
+    noteStore.loadNotebookTree();
+  }
 });
 
 // ========== 长按手势 ==========
@@ -247,9 +272,12 @@ const showActionSheet = async (note: Note) => {
   }
 };
 
-/** 移动笔记：暂不实现功能，保留入口 */
+/** 移动笔记：打开分类选择弹窗 */
 const handleMoveNote = async () => {
-  await showToast(t("note.list.feature.comingSoon"), "warning");
+  if (!currentNote) return;
+  moveNoteId.value = currentNote.id;
+  moveNoteName.value = currentNote.title || t("note.untitled");
+  showMoveNoteModal.value = true;
 };
 
 /** 彻底删除：先弹确认框，确认后调 API 删除 */
@@ -325,6 +353,31 @@ const handleEmptyTrash = async () => {
   } finally {
     emptying.value = false;
   }
+};
+
+/** 移动笔记确认：调 API 移动，后端会自动清除回收站状态 */
+const onMoveNoteConfirm = async (targetId: number) => {
+  showMoveNoteModal.value = false;
+  try {
+    const res = await updateNote(moveNoteId.value, {
+      notebook_id: targetId,
+    });
+    const body = res.data as { code: number; msg: string };
+    if (body.code === 200) {
+      await showToast(t("note.move.success"), "success");
+      // 从回收站列表中移除已恢复的笔记
+      trashNotes.value = trashNotes.value.filter((n) => n.id !== moveNoteId.value);
+    } else {
+      await showToast(t("unknown"), "danger");
+    }
+  } catch {
+    await showToast(t("unknown"), "danger");
+  }
+};
+
+/** 移动笔记取消 */
+const onMoveNoteCancel = () => {
+  showMoveNoteModal.value = false;
 };
 
 /** Toast 提示 */

@@ -268,8 +268,14 @@ export const useNoteStore = defineStore("note", {
 
         /**
          * 加载指定分类的笔记列表并缓存
+         * @param categoryId 分类 id
+         * @param force 是否强制刷新（忽略缓存）
          */
-        async loadCategoryNotes(categoryId: number): Promise<void> {
+        async loadCategoryNotes(categoryId: number, force: boolean = false): Promise<void> {
+            // 强制刷新时清除该分类的缓存标记
+            if (force) {
+                this.loadedCategoryIds.delete(categoryId);
+            }
             this.loadingNotes = true;
             try {
                 const res = await fetchNoteList(categoryId);

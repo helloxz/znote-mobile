@@ -41,6 +41,14 @@
 
       <!-- 笔记列表 -->
       <div class="note-list">
+        <!-- 下拉刷新 -->
+        <ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
+          <ion-refresher-content
+            pulling-icon="lines"
+            refreshing-spinner="crescent"
+          />
+        </ion-refresher>
+
         <!-- 加载中：骨架屏（分类加载 or 搜索加载） -->
         <template v-if="noteStore.loadingNotes || noteStore.loadingSearch">
           <div v-for="i in 6" :key="`sk-${i}`" class="note-card skeleton-card">
@@ -108,6 +116,8 @@ import {
   IonSearchbar,
   IonSkeletonText,
   IonMenu,
+  IonRefresher,
+  IonRefresherContent,
   menuController,
   popoverController,
   actionSheetController,
@@ -328,6 +338,17 @@ watch(
 );
 
 const sorting = ref(false);
+
+/** 下拉刷新：重新加载当前分类的笔记列表 */
+const onRefresh = async (event: Event) => {
+  const target = event.target as HTMLIonRefresherElement;
+  // 非搜索模式且有选中分类时，强制刷新该分类的笔记
+  if (!noteStore.searchMode && noteStore.activeCategoryId) {
+    await noteStore.loadCategoryNotes(noteStore.activeCategoryId, true);
+  }
+  // 结束刷新动画
+  target.complete();
+};
 
 /** 拖拽结束：构建 items 调排序 API，失败回退 */
 const onDragEnd = async () => {
