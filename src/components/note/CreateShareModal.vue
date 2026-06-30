@@ -30,7 +30,7 @@
             type="text"
             :placeholder="t('share.create.passwordPlaceholder')"
             class="form-input"
-            maxlength="16"
+            :maxlength="16"
           />
         </div>
 

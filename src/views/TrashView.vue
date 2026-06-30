@@ -140,8 +140,8 @@ const loadTrashNotes = async () => {
 
 onMounted(() => {
   loadTrashNotes();
-  // 确保分类树已加载（移动笔记时需要）
-  if (!noteStore.notebookTreeLoaded) {
+  // 确保分类树已加载（移动笔记时需要）：树为空则触发加载
+  if (noteStore.notebookTree.length === 0) {
     noteStore.loadNotebookTree();
   }
 });
