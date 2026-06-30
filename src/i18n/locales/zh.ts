@@ -7,13 +7,12 @@ export default {
     // 底部 Tab 标签
     tabs: {
         notes: "笔记",
-        search: "搜索",
+        shares: "我的分享",
         me: "我的",
     },
 
     // 占位提示文案
     placeholder: {
-        search: "搜索功能开发中",
         me: "个人中心开发中",
     },
 
@@ -138,4 +137,26 @@ export default {
 
     // 兜底：未知 msg
     unknown: "操作失败，请稍后重试",
+
+    // ========== 分享 ==========
+    shares: {
+        title: "我的分享",
+        search_placeholder: "输入至少2个字符筛选",
+        empty: "暂无分享",
+        no_results: "未找到匹配的分享",
+        never_expire: "永不过期",
+        copy_link: "复制分享链接",
+        delete: "删除分享",
+        delete_confirm: "确定删除该分享吗？",
+        "delete.success": "删除成功",
+        "copy.success": "已复制到剪贴板",
+        status: {
+            active: "有效",
+            revoked: "已撤销",
+        },
+        result: {
+            url: "访问地址",
+            password: "密码",
+        },
+    },
 };

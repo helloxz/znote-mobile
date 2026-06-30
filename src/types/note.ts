@@ -33,3 +33,17 @@ export interface Note {
     created_at: number | string;
     updated_at: number | string;
 }
+
+/** 分享列表项（与后端 GET /api/user/note/share/list 返回结构对齐） */
+export interface ShareItem {
+    id: number;
+    note_id: number;
+    share_id: string;
+    password: string | null;
+    expires_at: number | string | null;
+    status: "active" | "revoked";
+    created_at: number | string;
+    updated_at: number | string;
+    note_title: string;
+    note_content: string;
+}

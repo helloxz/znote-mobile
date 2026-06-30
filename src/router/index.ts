@@ -17,8 +17,8 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/NoteView.vue')
       },
       {
-        path: 'search',
-        component: () => import('@/views/SearchView.vue')
+        path: 'shares',
+        component: () => import('@/views/ShareView.vue')
       },
       {
         path: 'me',

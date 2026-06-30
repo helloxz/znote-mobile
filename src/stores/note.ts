@@ -15,6 +15,8 @@ import {
 import {
     getActiveNotebookId,
     setActiveNotebookId,
+    getActiveCategoryId,
+    setActiveCategoryId,
 } from "@/services/storage";
 import type { Notebook, NotebookNode, Note } from "@/types/note";
 
@@ -138,8 +140,8 @@ export const useNoteStore = defineStore("note", {
         notebookTree: [] as NotebookNode[],
         // 当前选中的顶层笔记本 id（持久化到 preferences）
         activeNotebookId: getActiveNotebookId() as number | null,
-        // 当前选中的分类 id（任意层级，内存，会话级）
-        activeCategoryId: null as number | null,
+        // 当前选中的分类 id（任意层级，持久化到 preferences，跨会话保留）
+        activeCategoryId: getActiveCategoryId() as number | null,
         // 分类 id → 该分类直属笔记列表（按需懒加载缓存）
         notesByCategory: {} as Record<number, Note[]>,
         // 已加载笔记的分类 id 集合（避免重复请求）
@@ -205,16 +207,26 @@ export const useNoteStore = defineStore("note", {
                     await setActiveNotebookId(nbId);
                 }
 
-                // 默认选中该笔记本下第一个分类
+                // 尝试恢复持久化的分类 id（校验是否仍存在于当前笔记本的分类树中）
                 const notebook = this.notebookTree.find(
                     (n) => n.id === nbId
                 );
-                const firstCategory = notebook?.children?.[0];
-                if (firstCategory) {
-                    await this.selectCategory(firstCategory.id);
+                const persistedCatId = this.activeCategoryId;
+                if (
+                    persistedCatId !== null &&
+                    notebook &&
+                    findNodeById(notebook.children ?? [], persistedCatId)
+                ) {
+                    // 持久化的分类仍存在，恢复选中
+                    await this.selectCategory(persistedCatId);
                 } else {
-                    // 笔记本下无分类：清空选中
-                    this.activeCategoryId = null;
+                    // 持久化分类不存在，回退到第一个分类
+                    const firstCategory = notebook?.children?.[0];
+                    if (firstCategory) {
+                        await this.selectCategory(firstCategory.id);
+                    } else {
+                        this.activeCategoryId = null;
+                    }
                 }
             } finally {
                 this.loadingTree = false;
@@ -242,12 +254,15 @@ export const useNoteStore = defineStore("note", {
         },
 
         /**
-         * 选中分类：设 activeCategoryId + 按需加载该分类直属笔记
+         * 选中分类：设 activeCategoryId + 持久化 + 按需加载该分类直属笔记
          */
         async selectCategory(id: number | null): Promise<void> {
             this.activeCategoryId = id;
-            if (id !== null && !this.loadedCategoryIds.has(id)) {
-                await this.loadCategoryNotes(id);
+            if (id !== null) {
+                await setActiveCategoryId(id);
+                if (!this.loadedCategoryIds.has(id)) {
+                    await this.loadCategoryNotes(id);
+                }
             }
         },
 

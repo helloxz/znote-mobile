@@ -65,6 +65,7 @@
               :key="note.id"
               :note="note"
               :draggable="note.is_pinned !== 1 && !noteStore.searchMode"
+              :notebook-title="noteStore.searchMode ? notebookTitleMap[note.notebook_id] : undefined"
               @select="onNoteSelect"
               @contextmenu="onNoteContextMenu"
             />
@@ -214,25 +215,49 @@ onUnmounted(() => {
 
 /** 顶部标题：当前分类名 → 笔记本名 → ZNote */
 const pageTitle = computed(() => {
-  // 递归在当前笔记本的分类树中找当前分类名
-  const findName = (
-    nodes: typeof noteStore.currentCategoryTree,
-  ): string | null => {
-    for (const n of nodes) {
-      if (n.id === noteStore.activeCategoryId) return n.title;
-      if (n.children?.length) {
-        const r = findName(n.children);
-        if (r) return r;
+    // 递归在当前笔记本的分类树中找当前分类名
+    const findName = (
+      nodes: typeof noteStore.currentCategoryTree,
+    ): string | null => {
+      for (const n of nodes) {
+        if (n.id === noteStore.activeCategoryId) return n.title;
+        if (n.children?.length) {
+          const r = findName(n.children);
+          if (r) return r;
+        }
+      }
+      return null;
+    };
+    return (
+      findName(noteStore.currentCategoryTree) ||
+      noteStore.activeNotebook?.title ||
+      t("note.title")
+    );
+  });
+
+  /**
+   * 搜索模式下，从笔记本树构建 notebook_id → title 的映射表
+   * 用于在搜索结果中展示每条笔记所属的分类名称
+   */
+  const notebookTitleMap = computed(() => {
+    const map: Record<number, string> = {};
+    const walk = (nodes: typeof noteStore.currentCategoryTree) => {
+      for (const n of nodes) {
+        // 只记录非顶层笔记本的分类节点（顶层笔记本的 title 是笔记本名，不是分类名）
+        map[n.id] = n.title;
+        if (n.children?.length) {
+          walk(n.children);
+        }
+      }
+    };
+    // 遍历整个笔记本树（非仅当前笔记本），覆盖所有搜索结果可能归属的分类
+    for (const nb of noteStore.notebookTree) {
+      if (nb.children?.length) {
+        walk(nb.children);
       }
     }
-    return null;
-  };
-  return (
-    findName(noteStore.currentCategoryTree) ||
-    noteStore.activeNotebook?.title ||
-    t("note.title")
-  );
-});
+    return map;
+  });
 
 /** 打开侧边栏 */
 const openMenu = () => {

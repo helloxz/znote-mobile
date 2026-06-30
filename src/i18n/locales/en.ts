@@ -7,13 +7,12 @@ export default {
     // 底部 Tab 标签
     tabs: {
         notes: "Notes",
-        search: "Search",
+        shares: "My Shares",
         me: "Me",
     },
 
     // 占位提示文案
     placeholder: {
-        search: "Search feature coming soon",
         me: "Profile coming soon",
     },
 
@@ -138,4 +137,26 @@ export default {
 
     // 兜底：未知 msg
     unknown: "Operation failed, please try again later",
+
+    // ========== 分享 ==========
+    shares: {
+        title: "My Shares",
+        search_placeholder: "Type at least 2 chars to filter",
+        empty: "No shares yet",
+        no_results: "No matching shares",
+        never_expire: "Never expires",
+        copy_link: "Copy Share Link",
+        delete: "Delete Share",
+        delete_confirm: "Delete this share?",
+        "delete.success": "Share deleted",
+        "copy.success": "Copied to clipboard",
+        status: {
+            active: "Active",
+            revoked: "Revoked",
+        },
+        result: {
+            url: "URL",
+            password: "Password",
+        },
+    },
 };

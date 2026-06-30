@@ -1,0 +1,472 @@
+<template>
+  <ion-page>
+    <!-- 自定义固定顶部栏（标题 + 搜索框） -->
+    <div class="custom-header">
+      <div class="title-row">
+        <span class="title-text">{{ t("shares.title") }}</span>
+      </div>
+      <div class="search-wrap">
+        <ion-searchbar
+          v-model="keyword"
+          :placeholder="t('shares.search_placeholder')"
+          class="share-searchbar"
+        />
+      </div>
+    </div>
+
+    <ion-content
+      :fullscreen="true"
+      id="share-content"
+      class="share-content"
+      ref="contentRef"
+    >
+      <!-- 占位：撑开与 custom-header 等高的空间 -->
+      <div class="header-placeholder"></div>
+
+      <!-- 分享列表 -->
+      <div class="share-list">
+        <!-- 加载中：骨架屏 -->
+        <template v-if="loading">
+          <div v-for="i in 6" :key="`sk-${i}`" class="share-card skeleton-card">
+            <ion-skeleton-text :animated="true" class="sk-title" />
+            <ion-skeleton-text :animated="true" class="sk-meta" />
+          </div>
+        </template>
+
+        <!-- 有数据 -->
+        <template v-else-if="filteredShares.length > 0">
+          <div
+            v-for="share in filteredShares"
+            :key="share.id"
+            class="share-card"
+            @touchstart.passive="(e: TouchEvent) => onTouchStart(e, share)"
+            @touchmove.passive="onTouchMove"
+            @touchend="onTouchEnd"
+            @touchcancel="onTouchCancel"
+            @contextmenu.prevent="(e: Event) => onContextMenu(e, share)"
+          >
+            <!-- 笔记标题 -->
+            <p class="card-title">{{ share.note_title }}</p>
+
+            <!-- 底部：状态 + 到期日期 -->
+            <div class="card-meta">
+              <span
+                class="status-badge"
+                :class="share.status === 'active' ? 'status-active' : 'status-revoked'"
+              >
+                {{ share.status === 'active' ? t('shares.status.active') : t('shares.status.revoked') }}
+              </span>
+              <span class="meta-sep">·</span>
+              <span class="card-date">
+                <template v-if="share.expires_at">{{ formatDate(share.expires_at) }}</template>
+                <template v-else>{{ t('shares.never_expire') }}</template>
+              </span>
+            </div>
+          </div>
+        </template>
+
+        <!-- 空状态 -->
+        <div v-else class="empty-state">
+          <ion-icon :icon="shareSocialOutline" class="empty-icon" />
+          <p class="empty-text">{{ keyword ? t('shares.no_results') : t('shares.empty') }}</p>
+        </div>
+      </div>
+    </ion-content>
+  </ion-page>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
+import {
+  IonPage,
+  IonIcon,
+  IonContent,
+  IonSearchbar,
+  IonSkeletonText,
+  actionSheetController,
+  alertController,
+  toastController,
+} from "@ionic/vue";
+import { shareSocialOutline } from "ionicons/icons";
+import { getServerUrl } from "@/services/storage";
+import { fetchMyShares, deleteShare } from "@/api/share";
+import type { ShareItem } from "@/types/note";
+
+const { t } = useI18n();
+
+// ion-content 实例引用（用于 dismiss overlay 后恢复滚动）
+const contentRef = ref<InstanceType<typeof IonContent> | null>(null);
+
+// 分享列表数据
+const shares = ref<ShareItem[]>([]);
+const loading = ref(false);
+
+// 搜索关键词
+const keyword = ref("");
+
+/** 前端筛选：关键词 ≥ 2 字符时按 note_title 模糊匹配 */
+const filteredShares = computed(() => {
+  const kw = keyword.value.trim().toLowerCase();
+  if (kw.length < 2) return shares.value;
+  return shares.value.filter((s) =>
+    s.note_title.toLowerCase().includes(kw)
+  );
+});
+
+/** 格式化日期：YYYY/MM/DD */
+const formatDate = (ts: number | string | null): string => {
+  if (!ts) return "";
+  const ms = typeof ts === "number" && ts < 1e12 ? ts * 1000 : ts;
+  const d = new Date(ms);
+  if (Number.isNaN(d.getTime())) return "";
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+};
+
+/** 加载分享列表 */
+const loadShares = async () => {
+  loading.value = true;
+  try {
+    shares.value = await fetchMyShares();
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadShares();
+});
+
+// ========== 长按手势 ==========
+// 500ms 长按后设置标记，touchend 时才弹出 actionSheet，
+// 避免 touch 序列中途弹 overlay 导致 Ionic 滚动锁残留
+
+let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+let longPressTriggered = false;
+let startPoint = { x: 0, y: 0 };
+let currentShare: ShareItem | null = null;
+
+const onTouchStart = (e: TouchEvent, share: ShareItem) => {
+  const touch = e.touches[0];
+  startPoint = { x: touch.clientX, y: touch.clientY };
+  longPressTriggered = false;
+  currentShare = share;
+  longPressTimer = setTimeout(() => {
+    longPressTriggered = true;
+  }, 500);
+};
+
+const onTouchMove = (e: TouchEvent) => {
+  if (!longPressTimer && !longPressTriggered) return;
+  const touch = e.touches[0];
+  const dx = touch.clientX - startPoint.x;
+  const dy = touch.clientY - startPoint.y;
+  // 滑动超过阈值取消长按，避免滚动时误触
+  if (Math.sqrt(dx * dx + dy * dy) > 10) {
+    clearTimer();
+  }
+};
+
+const onTouchEnd = () => {
+  clearTimer();
+  if (longPressTriggered && currentShare) {
+    longPressTriggered = false;
+    showActionSheet(currentShare);
+    currentShare = null;
+  }
+};
+
+const onTouchCancel = () => {
+  clearTimer();
+};
+
+const clearTimer = () => {
+  longPressTriggered = false;
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+};
+
+/** PC 端右键触发（桌面调试用） */
+const onContextMenu = (_e: Event, share: ShareItem) => {
+  showActionSheet(share);
+};
+
+/**
+ * 强制清理 overlay dismiss 后可能残留的滚动锁。
+ * 参考 NoteView.vue 的 restoreScroll 实现
+ */
+const restoreScroll = () => {
+  requestAnimationFrame(() => {
+    document.body.classList.remove("backdrop-no-scroll");
+    document.body.style.removeProperty("overflow");
+
+    const appRoot = document.querySelector("ion-app") || document.body;
+    const viewContainer = appRoot.querySelector(
+      "ion-router-outlet, #ion-view-container-root"
+    );
+    if (viewContainer) {
+      viewContainer.removeAttribute("aria-hidden");
+      viewContainer.removeAttribute("inert");
+    }
+
+    const ionContentEl = contentRef.value?.$el as
+      | (HTMLElement & { getScrollElement?: () => Promise<HTMLElement> })
+      | undefined;
+    void ionContentEl?.getScrollElement?.().then((scrollEl) => {
+      scrollEl.style.removeProperty("overflow");
+      scrollEl.style.removeProperty("overflow-y");
+      scrollEl.style.removeProperty("touch-action");
+      scrollEl.style.removeProperty("pointer-events");
+    });
+  });
+
+  setTimeout(() => {
+    document.body.classList.remove("backdrop-no-scroll");
+    document.body.style.removeProperty("overflow");
+  }, 100);
+};
+
+// ========== 长按弹出 Action Sheet ==========
+
+/** 弹出底部操作菜单：复制分享链接 / 删除分享 */
+const showActionSheet = async (share: ShareItem) => {
+  const actionSheet = await actionSheetController.create({
+    header: share.note_title,
+    buttons: [
+      {
+        text: t("shares.copy_link"),
+        role: "copy",
+      },
+      {
+        text: t("shares.delete"),
+        role: "delete",
+      },
+      {
+        text: t("note.list.cancel"),
+        role: "cancel",
+      },
+    ],
+  });
+  await actionSheet.present();
+  const { role } = await actionSheet.onDidDismiss();
+
+  // overlay dismiss 后主动恢复滚动
+  restoreScroll();
+
+  if (role === "copy") {
+    await handleCopyLink(share);
+  } else if (role === "delete") {
+    await handleDelete(share);
+  }
+};
+
+/** 复制分享链接 + 密码（如有） */
+const handleCopyLink = async (share: ShareItem) => {
+  const serverUrl = getServerUrl();
+  const url = `${serverUrl}/s/${share.share_id}`;
+  const lines = [`${t("shares.result.url")}: ${url}`];
+  if (share.password) {
+    lines.push(`${t("shares.result.password")}: ${share.password}`);
+  }
+  try {
+    await navigator.clipboard.writeText(lines.join("\n"));
+    await showToast(t("shares.copy.success"), "success");
+  } catch {
+    // 兜底：部分环境 clipboard API 不可用
+    await showToast(t("shares.copy.success"), "success");
+  }
+};
+
+/** 删除分享：先弹确认框，确认后调 API 删除 */
+const handleDelete = async (share: ShareItem) => {
+  const alert = await alertController.create({
+    header: t("shares.delete"),
+    message: t("shares.delete_confirm"),
+    buttons: [
+      {
+        text: t("note.list.cancel"),
+        role: "cancel",
+      },
+      {
+        text: t("note.dialog.confirm"),
+        role: "confirm",
+        cssClass: "danger",
+      },
+    ],
+  });
+  await alert.present();
+  const { role } = await alert.onDidDismiss();
+
+  restoreScroll();
+
+  if (role === "confirm") {
+    const ok = await deleteShare(share.id);
+    if (ok) {
+      await showToast(t("shares.delete.success"), "success");
+      // 从本地列表移除已删除项
+      shares.value = shares.value.filter((s) => s.id !== share.id);
+    }
+  }
+};
+
+/** Toast 提示 */
+const showToast = async (message: string, color: string = "danger") => {
+  const toast = await toastController.create({
+    message,
+    duration: 2000,
+    color,
+    position: "top",
+  });
+  await toast.present();
+};
+</script>
+
+<style scoped>
+/* 内容区背景 */
+.share-content {
+  --background: var(--z-bg-page);
+}
+
+/* 自定义顶部栏：固定顶部 */
+.custom-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: var(--z-bg-page);
+  padding-top: env(safe-area-inset-top);
+}
+
+/* 标题行 */
+.title-row {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 var(--z-space-xs);
+}
+
+.title-text {
+  flex: 1;
+  text-align: center;
+  font-size: var(--z-fs-body-lg);
+  font-weight: 600;
+  color: var(--z-text-primary);
+}
+
+/* 搜索框容器 */
+.search-wrap {
+  padding: var(--z-space-sm) var(--z-space-md) var(--z-space-sm);
+}
+
+.share-searchbar {
+  --background: var(--z-bg-surface);
+  --border-radius: var(--z-radius-md);
+  --box-shadow: none;
+  padding: 0;
+}
+
+/* 占位：撑开与 custom-header 等高的空间 */
+.header-placeholder {
+  height: calc(48px + 56px + env(safe-area-inset-top));
+}
+
+/* 分享列表 */
+.share-list {
+  padding: 0 var(--z-space-md) var(--z-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--z-space-sm);
+}
+
+/* 分享卡片 */
+.share-card {
+  background: var(--z-bg-surface);
+  border-radius: var(--z-radius-md);
+  padding: var(--z-space-md);
+  box-shadow: var(--z-shadow-xs);
+}
+
+.card-title {
+  font-size: var(--z-fs-body-lg);
+  font-weight: 600;
+  color: var(--z-text-primary);
+  margin-bottom: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 底部信息行：状态标签 + 日期 */
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 状态标签 */
+.status-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--z-radius-pill);
+  line-height: 1.4;
+}
+
+.status-active {
+  background: #e8f8ee;
+  color: #00b42a;
+}
+
+.status-revoked {
+  background: var(--z-bg-subtle);
+  color: var(--z-text-disabled);
+}
+
+.meta-sep {
+  color: var(--z-text-disabled);
+  font-size: var(--z-fs-caption);
+}
+
+.card-date {
+  font-size: var(--z-fs-caption);
+  color: var(--z-text-tertiary);
+}
+
+/* 骨架屏 */
+.skeleton-card {
+  padding: var(--z-space-md);
+}
+
+.sk-title {
+  width: 60%;
+  height: 18px;
+  margin-bottom: 10px;
+  border-radius: var(--z-radius-sm);
+}
+
+.sk-meta {
+  width: 40%;
+  height: 14px;
+  border-radius: var(--z-radius-sm);
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding-top: 25vh;
+}
+
+.empty-icon {
+  font-size: 56px;
+  color: var(--z-text-disabled);
+}
+
+.empty-text {
+  margin-top: 12px;
+  font-size: var(--z-fs-body);
+  color: var(--z-text-tertiary);
+}
+</style>

@@ -8,9 +8,9 @@
           <ion-label>{{ t("tabs.notes") }}</ion-label>
         </ion-tab-button>
 
-        <ion-tab-button tab="search" href="/search">
-          <ion-icon aria-hidden="true" :icon="searchOutline" />
-          <ion-label>{{ t("tabs.search") }}</ion-label>
+        <ion-tab-button tab="shares" href="/shares">
+          <ion-icon aria-hidden="true" :icon="shareOutline" />
+          <ion-label>{{ t("tabs.shares") }}</ion-label>
         </ion-tab-button>
 
         <ion-tab-button tab="me" href="/me">
@@ -32,7 +32,7 @@ import {
   IonPage,
   IonRouterOutlet,
 } from "@ionic/vue";
-import { bookOutline, searchOutline, personOutline } from "ionicons/icons";
+import { bookOutline, shareOutline, personOutline } from "ionicons/icons";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
