@@ -146,6 +146,24 @@ export default {
     "shares.result.url": "访问地址",
     "shares.result.password": "密码",
 
+    // ========== 创建分享弹窗 ==========
+    "share.create.title": "创建分享",
+    "share.create.noteTitle": "笔记标题",
+    "share.create.passwordLabel": "分享密码",
+    "share.create.passwordHint": "设置密码后，访问者需要输入密码才能查看",
+    "share.create.passwordPlaceholder": "输入密码",
+    "share.create.expireLabel": "有效天数",
+    "share.create.expireHint": "设置分享的有效期，留空表示永久有效",
+    "share.create.expirePlaceholder": "输入天数（可选，留空永久有效）",
+    "share.create.confirm": "创建分享",
+    "share.create.creating": "创建中...",
+    "share.create.success": "分享创建成功",
+    "share.create.failed": "创建失败，请重试",
+    "share.create.link": "分享链接",
+    "share.create.passwordResult": "访问密码",
+    "share.create.copied": "已复制到剪贴板",
+    "share.create.done": "完成",
+
     // ========== 回收站 ==========
     "trash.title": "回收站",
     "trash.empty": "回收站为空",

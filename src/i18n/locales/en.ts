@@ -145,6 +145,24 @@ export default {
     "shares.result.url": "URL",
     "shares.result.password": "Password",
 
+    // ========== Create Share Modal ==========
+    "share.create.title": "Create Share",
+    "share.create.noteTitle": "Note Title",
+    "share.create.passwordLabel": "Share Password",
+    "share.create.passwordHint": "Set a password to restrict access",
+    "share.create.passwordPlaceholder": "Enter password",
+    "share.create.expireLabel": "Valid Days",
+    "share.create.expireHint": "Set expiration days, leave empty for permanent",
+    "share.create.expirePlaceholder": "Enter days (optional, empty for permanent)",
+    "share.create.confirm": "Create Share",
+    "share.create.creating": "Creating...",
+    "share.create.success": "Share created successfully",
+    "share.create.failed": "Failed to create share",
+    "share.create.link": "Share Link",
+    "share.create.passwordResult": "Access Password",
+    "share.create.copied": "Copied to clipboard",
+    "share.create.done": "Done",
+
     // ========== Trash ==========
     "trash.title": "Trash",
     "trash.empty": "Trash is empty",

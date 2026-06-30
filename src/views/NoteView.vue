@@ -111,6 +111,15 @@
       @cancel="onMoveNoteCancel"
       @update:show="showMoveNoteModal = $event"
     />
+
+    <!-- 创建分享弹窗 -->
+    <CreateShareModal
+      :show="showCreateShareModal"
+      :note-id="shareNoteId"
+      :note-title="shareNoteTitle"
+      @cancel="showCreateShareModal = false"
+      @update:show="showCreateShareModal = $event"
+    />
   </ion-page>
 </template>
 
@@ -146,6 +155,7 @@ import SidebarMenu from "@/components/note/SidebarMenu.vue";
 import LogoutMenu from "@/components/LogoutMenu.vue";
 import NoteListItem from "@/components/note/NoteListItem.vue";
 import MoveCategoryModal from "@/components/note/MoveCategoryModal.vue";
+import CreateShareModal from "@/components/note/CreateShareModal.vue";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -335,6 +345,11 @@ const moveNoteId = ref(0);
 const moveNoteName = ref("");
 const moveNoteCurrentCategoryId = ref<number | undefined>(undefined);
 
+// 创建分享弹窗状态
+const showCreateShareModal = ref(false);
+const shareNoteId = ref(0);
+const shareNoteTitle = ref("");
+
 // 本地笔记副本（VueDraggable 直接 mutate，watch 同步 store 数据）
 const localNotes = ref<Note[]>([]);
 
@@ -457,8 +472,10 @@ const onNoteContextMenu = async (note: Note) => {
     moveNoteCurrentCategoryId.value = note.notebook_id;
     showMoveNoteModal.value = true;
   } else if (role === "share") {
-    // 占位：暂未实现
-    await showToast(t("note.list.feature.comingSoon"));
+    // 打开创建分享弹窗
+    shareNoteId.value = note.id;
+    shareNoteTitle.value = note.title || t("note.untitled");
+    showCreateShareModal.value = true;
   }
 };
 
