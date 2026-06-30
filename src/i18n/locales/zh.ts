@@ -13,9 +13,21 @@ export default {
 
     // 占位提示文案
     placeholder: {
-        notes: "笔记功能开发中",
         search: "搜索功能开发中",
         me: "个人中心开发中",
+    },
+
+    // 笔记页
+    note: {
+        title: "ZNote",
+        searchPlaceholder: "搜索笔记",
+        logout: "退出登录",
+        notebooks: "笔记本",
+        switchNotebook: "切换笔记本",
+        categories: "分类",
+        empty: "暂无内容",
+        loading: "加载中...",
+        untitled: "无标题",
     },
 
     // 登录页
@@ -51,6 +63,9 @@ export default {
     "network.timeout": "请求超时，请检查网络",
     "network.disconnected": "网络连接失败，请检查网络或服务器地址",
     "network.error": "网络异常，请稍后重试",
+
+    // 后端 logout 成功返回的 msg（兜底用，实际不弹 toast）
+    success: "操作成功",
 
     // 兜底：未知 msg
     unknown: "操作失败，请稍后重试",

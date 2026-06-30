@@ -13,9 +13,21 @@ export default {
 
     // 占位提示文案
     placeholder: {
-        notes: "Notes feature coming soon",
         search: "Search feature coming soon",
         me: "Profile coming soon",
+    },
+
+    // 笔记页
+    note: {
+        title: "ZNote",
+        searchPlaceholder: "Search notes",
+        logout: "Log Out",
+        notebooks: "Notebooks",
+        switchNotebook: "Switch notebook",
+        categories: "Categories",
+        empty: "No content yet",
+        loading: "Loading...",
+        untitled: "Untitled",
     },
 
     // 登录页
@@ -51,6 +63,9 @@ export default {
     "network.timeout": "Request timed out, please check your network",
     "network.disconnected": "Network failed, please check network or server URL",
     "network.error": "Network error, please try again later",
+
+    // 后端 logout 成功返回的 msg（兜底用，实际不弹 toast）
+    success: "Operation successful",
 
     // 兜底：未知 msg
     unknown: "Operation failed, please try again later",

@@ -126,7 +126,7 @@ const onSubmit = async () => {
 
   if (result.success) {
     await showToast(t("login.success"), "success");
-    router.replace("/tabs/tab1");
+    router.replace("/note");
   } else {
     // msg 为后端返回的英文 key 或前端自定义 key，直接作为 i18n key 翻译
     // 未命中翻译时 vue-i18n 返回 key 本身，兜底显示 unknown
@@ -201,6 +201,9 @@ const showToast = async (message: string, color: string = "danger") => {
   --border-radius: var(--z-radius-md);
   --padding-start: var(--z-space-md);
   --inner-padding-end: var(--z-space-md);
+  /* 去掉 ion-item 默认的底部内边框线（颜色 --ion-border-color #e5e6eb） */
+  --border-width: 0;
+  --inner-border-width: 0;
   border-radius: var(--z-radius-md);
   box-shadow: var(--z-shadow-xs);
 }

@@ -5,7 +5,7 @@
         <ion-title>{{ t("tabs.search") }}</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content :fullscreen="true" class="tab-content">
+    <ion-content :fullscreen="true" class="page-content">
       <div class="placeholder">
         <ion-icon :icon="searchOutline" class="placeholder-icon" />
         <p class="placeholder-text">{{ t("placeholder.search") }}</p>
@@ -15,15 +15,22 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonIcon } from '@ionic/vue';
-import { searchOutline } from 'ionicons/icons';
-import { useI18n } from 'vue-i18n';
+import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonIcon,
+} from "@ionic/vue";
+import { searchOutline } from "ionicons/icons";
+import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 </script>
 
 <style scoped>
-.tab-content {
+.page-content {
   --background: var(--z-bg-page);
 }
 .placeholder {

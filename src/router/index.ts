@@ -6,33 +6,29 @@ import { getToken } from '@/services/storage';
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/tabs/tab1'
-  },
-  {
-    path: '/login',
-    component: () => import('@/views/LoginPage.vue')
-  },
-  {
-    path: '/tabs/',
     component: TabsPage,
     children: [
       {
         path: '',
-        redirect: '/tabs/tab1'
+        redirect: '/note'
       },
       {
-        path: 'tab1',
-        component: () => import('@/views/Tab1Page.vue')
+        path: 'note',
+        component: () => import('@/views/NoteView.vue')
       },
       {
-        path: 'tab2',
-        component: () => import('@/views/Tab2Page.vue')
+        path: 'search',
+        component: () => import('@/views/SearchView.vue')
       },
       {
-        path: 'tab3',
-        component: () => import('@/views/Tab3Page.vue')
+        path: 'me',
+        component: () => import('@/views/MeView.vue')
       }
     ]
+  },
+  {
+    path: '/login',
+    component: () => import('@/views/LoginPage.vue')
   }
 ]
 
@@ -41,7 +37,7 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫：未登录跳登录页；已登录访问登录页跳主页
+// 路由守卫：未登录跳登录页；已登录访问登录页跳笔记页
 router.beforeEach((to) => {
   const isLoggedIn = !!getToken();
   const isLoginRoute = to.path === '/login';
@@ -52,8 +48,8 @@ router.beforeEach((to) => {
   }
 
   if (isLoggedIn && isLoginRoute) {
-    // 已登录访问登录页：重定向到主页
-    return { path: '/tabs/tab1' };
+    // 已登录访问登录页：重定向到笔记页
+    return { path: '/note' };
   }
 
   return true;

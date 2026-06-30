@@ -1,9 +1,8 @@
 import { defineStore } from "pinia";
-import { login as loginApi, type LoginResult } from "@/api/user";
+import { login as loginApi, logout as logoutApi, type LoginResult } from "@/api/user";
 import {
     getToken,
     setToken,
-    clearToken,
     getServerUrl,
     setServerUrl,
     getUserInfo,
@@ -88,13 +87,29 @@ export const useUserStore = defineStore("user", {
         },
 
         /**
-         * 登出：清空所有登录数据
+         * 清理本地登录数据（独立拆分，供登出/强制下线等场景复用）
+         * 清空 preferences 中的 token / 服务器地址 / userInfo + 内存缓存 + store state
          */
-        logout(): void {
+        clearUserData(): void {
             clearAll();
             this.token = null;
             this.serverUrl = null;
             this.userInfo = null;
+        },
+
+        /**
+         * 登出：调用后端撤销 session，无论成功失败都清理本地数据
+         * 路由跳转由调用方负责（避免 store 耦合路由）
+         */
+        async logout(): Promise<void> {
+            try {
+                // 调后端撤销 session（token 由请求拦截器自动注入）
+                await logoutApi();
+            } catch {
+                // 后端撤销失败不阻塞退出：本地数据照清，后端 session 由 30 天过期兜底
+            } finally {
+                this.clearUserData();
+            }
         },
     },
 });

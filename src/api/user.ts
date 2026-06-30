@@ -33,3 +33,12 @@ export function login(params: LoginParams) {
         password: params.password,
     });
 }
+
+/**
+ * 调用后端登出接口
+ * 路由：POST /api/user/logout（userRouter，需 Bearer token）
+ * 无需 body，token 由请求拦截器自动注入 Authorization 头
+ */
+export function logout() {
+    return req.post<ApiResponse<null>>("/api/user/logout");
+}
