@@ -20,6 +20,7 @@
           :active-category-id="noteStore.activeCategoryId"
           :level="0"
           @select="onSelectCategory"
+          @contextmenu="onContextMenu"
         />
         <div
           v-if="noteStore.currentCategoryTree.length === 0 && !noteStore.loadingTree"
@@ -34,10 +35,17 @@
 
 <script setup lang="ts">
 import { ref, provide, watch, computed } from "vue";
-import { IonIcon, popoverController } from "@ionic/vue";
+import {
+  IonIcon,
+  popoverController,
+  actionSheetController,
+  alertController,
+  toastController,
+} from "@ionic/vue";
 import { bookOutline, chevronDown } from "ionicons/icons";
 import { useI18n } from "vue-i18n";
 import { useNoteStore } from "@/stores/note";
+import type { NotebookNode } from "@/types/note";
 import CategoryTreeNode from "@/components/note/CategoryTreeNode.vue";
 import NotebookSwitcher from "@/components/note/NotebookSwitcher.vue";
 
@@ -111,6 +119,111 @@ const emit = defineEmits<{ (e: "select"): void }>();
 const onSelectCategory = (id: number) => {
   void noteStore.selectCategory(id);
   emit("select");
+};
+
+// ========== 分类长按菜单（编辑/删除） ==========
+
+/** 长按分类触发：弹出底部 Action Sheet */
+const onContextMenu = async (node: NotebookNode) => {
+  const actionSheet = await actionSheetController.create({
+    header: node.title,
+    buttons: [
+      {
+        text: t("note.category.renameText"),
+        role: "rename",
+      },
+      {
+        text: t("note.category.deleteText"),
+        role: "delete",
+      },
+      {
+        text: t("note.category.cancel"),
+        role: "cancel",
+      },
+    ],
+  });
+  await actionSheet.present();
+  const { role } = await actionSheet.onDidDismiss();
+  if (role === "rename") {
+    await showRenameAlert(node);
+  } else if (role === "delete") {
+    await showDeleteConfirmAlert(node);
+  }
+};
+
+/** 重命名：Alert 输入框 */
+const showRenameAlert = async (node: NotebookNode) => {
+  const alert = await alertController.create({
+    header: t("note.category.rename.title"),
+    inputs: [
+      {
+        name: "title",
+        value: node.title,
+        placeholder: t("note.category.rename.placeholder"),
+      },
+    ],
+    buttons: [
+      { text: t("note.category.cancel"), role: "cancel" },
+      {
+        text: t("note.dialog.confirm"),
+        handler: async (data) => {
+          const newTitle = (data?.title || "").trim();
+          if (!newTitle || newTitle === node.title) return;
+          const ok = await noteStore.updateNotebook(node.id, {
+            title: newTitle,
+          });
+          await showToast(
+            ok
+              ? t("note.category.rename.success")
+              : t("unknown"),
+            ok ? "success" : "danger"
+          );
+        },
+      },
+    ],
+  });
+  await alert.present();
+};
+
+/** 删除确认：输入分类名才解锁 */
+const showDeleteConfirmAlert = async (node: NotebookNode) => {
+  const alert = await alertController.create({
+    header: t("note.category.delete.title"),
+    subHeader: t("note.category.delete.warning", { title: node.title }),
+    inputs: [
+      {
+        name: "confirm",
+        placeholder: t("note.category.delete.hint"),
+      },
+    ],
+    buttons: [
+      { text: t("note.category.cancel"), role: "cancel" },
+      {
+        text: t("note.category.delete.confirmText"),
+        handler: async (data) => {
+          const input = (data?.confirm || "").trim();
+          if (input !== node.title) return false; // 输入不匹配，阻止关闭
+          const ok = await noteStore.deleteNotebooks([node.id]);
+          await showToast(
+            ok ? t("note.category.delete.success") : t("unknown"),
+            ok ? "success" : "danger"
+          );
+        },
+      },
+    ],
+  });
+  await alert.present();
+};
+
+/** Toast 提示 */
+const showToast = async (message: string, color: string = "danger") => {
+  const toast = await toastController.create({
+    message,
+    duration: 2000,
+    color,
+    position: "top",
+  });
+  await toast.present();
 };
 </script>
 

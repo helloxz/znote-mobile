@@ -1,10 +1,11 @@
 <template>
   <ion-page>
     <!-- 左侧侧边栏（汉堡菜单触发） -->
+    <!-- 内部用普通 div 自滚动，不用 ion-content，避免 overlay dismiss 后滚动锁不释放 -->
     <ion-menu menu-id="note-menu" content-id="note-content" side="start">
-      <ion-content>
+      <div class="menu-scroll">
         <SidebarMenu @select="onCategorySelected" />
-      </ion-content>
+      </div>
     </ion-menu>
 
     <!-- 自定义顶部栏（不用 ion-header/ion-toolbar，避免其伪元素阴影） -->
@@ -189,6 +190,14 @@ const formatTime = (ts: number | string): string => {
 </script>
 
 <style scoped>
+/* 侧边栏滚动容器：普通 div 自滚动，避开 Ionic 滚动锁机制 */
+.menu-scroll {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
+  background: var(--z-bg-page);
+}
+
 /* 内容区背景 */
 .note-content {
   --background: var(--z-bg-page);

@@ -1,16 +1,99 @@
 import { defineStore } from "pinia";
-import { fetchNotebookList, fetchNoteList } from "@/api/notebook";
+import {
+    fetchNotebookList,
+    fetchNoteList,
+    updateNotebook,
+    deleteNotebooks,
+    type UpdateNotebookPayload,
+} from "@/api/notebook";
 import {
     getActiveNotebookId,
     setActiveNotebookId,
 } from "@/services/storage";
-import type { NotebookNode, Note } from "@/types/note";
+import type { Notebook, NotebookNode, Note } from "@/types/note";
 
 /** 后端统一响应格式 */
 interface ApiResponse<T> {
     code: number;
     msg: string;
     data: T;
+}
+
+/**
+ * 递归工具：就地更新树中指定 id 的节点字段（保留 children 结构，不可变更新）
+ * 参考 web 端 stores/note.ts 的 updateNodeInTree
+ */
+function updateNodeInTree(
+    tree: NotebookNode[],
+    id: number,
+    updated: Notebook
+): NotebookNode[] {
+    return tree.map((node) => {
+        if (node.id === id) {
+            // 合并更新字段，保留原 children（后端返回的是扁平结构无 children）
+            return { ...node, ...updated, children: node.children };
+        }
+        if (node.children?.length) {
+            return {
+                ...node,
+                children: updateNodeInTree(node.children, id, updated),
+            };
+        }
+        return node;
+    });
+}
+
+/**
+ * 递归工具：从树中移除所有在 idSet 中的节点（含子孙自动随父移除）
+ */
+function removeNodeFromTree(
+    tree: NotebookNode[],
+    idSet: Set<number>
+): NotebookNode[] {
+    return tree
+        .filter((node) => !idSet.has(node.id))
+        .map((node) => ({
+            ...node,
+            children: node.children?.length
+                ? removeNodeFromTree(node.children, idSet)
+                : [],
+        }));
+}
+
+/**
+ * 递归工具：从树中收集 ids 及其所有子孙 id（BFS 逐层按 parent_id 查找）
+ * 参考 web 端 stores/note.ts 的 collectDescendantIdsFromTree
+ */
+function collectDescendantIdsFromTree(
+    tree: NotebookNode[],
+    ids: Set<number>
+): Set<number> {
+    const allIds = new Set<number>(ids);
+    let currentIds = [...ids];
+    while (currentIds.length > 0) {
+        const nextLevel: number[] = [];
+        for (const node of tree) {
+            // 深度优先在整棵树中找 parent_id 命中 currentIds 的节点
+            const stack = [...tree];
+            while (stack.length) {
+                const n = stack.pop()!;
+                if (n.children?.length) {
+                    for (const child of n.children) {
+                        if (
+                            currentIds.includes(child.parent_id ?? -1) &&
+                            !allIds.has(child.id)
+                        ) {
+                            allIds.add(child.id);
+                            nextLevel.push(child.id);
+                        }
+                        stack.push(child);
+                    }
+                }
+            }
+        }
+        currentIds = nextLevel;
+    }
+    return allIds;
 }
 
 /** 递归查找树中指定 id 的节点（任意层级） */
@@ -154,6 +237,86 @@ export const useNoteStore = defineStore("note", {
                 }
             } finally {
                 this.loadingNotes = false;
+            }
+        },
+
+        /**
+         * 更新笔记本/分类（重命名等）
+         * 成功后就地递归更新树节点，保留 children 结构，不重载整棵树
+         * @returns 是否成功
+         */
+        async updateNotebook(
+            id: number,
+            payload: UpdateNotebookPayload
+        ): Promise<boolean> {
+            this.loadingTree = true;
+            try {
+                const res = await updateNotebook(id, payload);
+                const body = res.data as ApiResponse<Notebook>;
+                if (body.code === 200 && body.data) {
+                    this.notebookTree = updateNodeInTree(
+                        this.notebookTree,
+                        id,
+                        body.data
+                    );
+                    return true;
+                }
+                return false;
+            } finally {
+                this.loadingTree = false;
+            }
+        },
+
+        /**
+         * 删除笔记本/分类（级联：子孙硬删，笔记软删进回收站）
+         * 删前递归收集受影响 id → 调 API → 从树移除 → 切换选中态 → 清缓存
+         * @returns 是否成功
+         */
+        async deleteNotebooks(ids: number[]): Promise<boolean> {
+            // ① 删前递归收集所有受影响 id（含子孙）
+            const allIds = collectDescendantIdsFromTree(
+                this.notebookTree,
+                new Set(ids)
+            );
+
+            try {
+                const res = await deleteNotebooks(ids);
+                const body = res.data as ApiResponse<unknown>;
+                if (body.code !== 200) return false;
+
+                // ② 从树中移除所有受影响节点
+                this.notebookTree = removeNodeFromTree(this.notebookTree, allIds);
+
+                // ③ 删的是当前选中分类：清空 category/note 选中（回空态，不自动选兄弟，对齐 web 端）
+                if (
+                    this.activeCategoryId !== null &&
+                    allIds.has(this.activeCategoryId)
+                ) {
+                    this.activeCategoryId = null;
+                }
+
+                // ④ 删的是当前顶层笔记本：自动切第一个；无剩余则清空
+                if (
+                    this.activeNotebookId !== null &&
+                    allIds.has(this.activeNotebookId)
+                ) {
+                    const next = this.notebookTree[0];
+                    if (next) {
+                        await this.switchNotebook(next.id);
+                    } else {
+                        this.activeNotebookId = null;
+                        this.activeCategoryId = null;
+                    }
+                }
+
+                // ⑤ 清理被删分类的笔记缓存
+                for (const cid of allIds) {
+                    delete this.notesByCategory[cid];
+                    this.loadedCategoryIds.delete(cid);
+                }
+                return true;
+            } catch {
+                return false;
             }
         },
     },

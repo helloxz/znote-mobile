@@ -6,6 +6,10 @@
       :class="{ active: activeCategoryId === node.id }"
       :style="{ paddingLeft: `${8 + level * 16}px` }"
       @click="onSelect"
+      @touchstart.passive="onTouchStart"
+      @touchmove.passive="onTouchMove"
+      @touchend="onTouchEnd"
+      @contextmenu.prevent="onContextMenu"
     >
       <!-- 展开/折叠箭头（有子节点才可点） -->
       <button
@@ -38,6 +42,7 @@
         :active-category-id="activeCategoryId"
         :level="level + 1"
         @select="(id: number) => emit('select', id)"
+        @contextmenu="(n: NotebookNode) => emit('contextmenu', n)"
       />
     </div>
   </div>
@@ -49,7 +54,7 @@ export default { name: "CategoryTreeNode" };
 </script>
 
 <script setup lang="ts">
-import { computed, inject, type Ref } from "vue";
+import { computed, inject, ref, type Ref } from "vue";
 import { IonIcon } from "@ionic/vue";
 import {
   chevronForward,
@@ -79,12 +84,59 @@ const hasChildren = computed(
 /** 当前节点是否展开 */
 const isExpanded = computed(() => expandedIds.value.has(props.node.id));
 
-/** 点击行：选中该分类（emit 由 inject 的方式不便，直接走 store 不合适，改 emit） */
-const emit = defineEmits<{ (e: "select", id: number): void }>();
+// 事件定义：select 选中分类，contextmenu 长按/右键触发菜单
+const emit = defineEmits<{
+  (e: "select", id: number): void;
+  (e: "contextmenu", node: NotebookNode): void;
+}>();
+
+/** 点击行：选中该分类 */
 const onSelect = () => emit("select", props.node.id);
 
 /** 点击箭头：切换展开/折叠 */
 const onToggle = () => toggleExpand(props.node.id, props.level);
+
+// ========== 长按手势 ==========
+// 长按超过 500ms 触发 contextmenu，touchmove 超过 10px 视为滑动取消
+let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+const startPoint = ref({ x: 0, y: 0 });
+
+const onTouchStart = (e: TouchEvent) => {
+  const touch = e.touches[0];
+  startPoint.value = { x: touch.clientX, y: touch.clientY };
+  longPressTimer = setTimeout(() => {
+    // 阻止 ion-content 接管后续触摸
+    e.preventDefault();
+    emit("contextmenu", props.node);
+  }, 500);
+};
+
+const onTouchMove = (e: TouchEvent) => {
+  if (!longPressTimer) return;
+  const touch = e.touches[0];
+  const dx = touch.clientX - startPoint.value.x;
+  const dy = touch.clientY - startPoint.value.y;
+  // 滑动超过阈值取消长按，避免滚动时误触
+  if (Math.sqrt(dx * dx + dy * dy) > 10) {
+    clearTimer();
+  }
+};
+
+const onTouchEnd = () => {
+  clearTimer();
+};
+
+const clearTimer = () => {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+};
+
+/** PC 端右键触发（开发调试用） */
+const onContextMenu = () => {
+  emit("contextmenu", props.node);
+};
 </script>
 
 <style scoped>

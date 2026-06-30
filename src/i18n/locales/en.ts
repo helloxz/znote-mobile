@@ -28,6 +28,28 @@ export default {
         empty: "No content yet",
         loading: "Loading...",
         untitled: "Untitled",
+        // 分类操作菜单
+        category: {
+            renameText: "Rename",
+            deleteText: "Delete category",
+            cancel: "Cancel",
+            rename: {
+                title: "Rename Category",
+                placeholder: "Enter new name",
+                success: "Renamed successfully",
+            },
+            delete: {
+                title: "Delete Category",
+                warning: "\"{title}\" cannot be restored after deletion, notes under it will be moved to trash",
+                hint: "Type the category name to confirm",
+                confirmText: "Confirm Delete",
+                success: "Deleted successfully",
+            },
+        },
+        // 通用对话框按钮
+        dialog: {
+            confirm: "Confirm",
+        },
     },
 
     // 登录页

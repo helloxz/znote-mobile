@@ -28,6 +28,28 @@ export default {
         empty: "暂无内容",
         loading: "加载中...",
         untitled: "无标题",
+        // 分类操作菜单
+        category: {
+            renameText: "重命名",
+            deleteText: "删除分类",
+            cancel: "取消",
+            rename: {
+                title: "重命名分类",
+                placeholder: "请输入新名称",
+                success: "重命名成功",
+            },
+            delete: {
+                title: "删除分类",
+                warning: "「{title}」删除后不可恢复，其下笔记将放入回收站",
+                hint: "请输入分类名称确认",
+                confirmText: "确认删除",
+                success: "删除成功",
+            },
+        },
+        // 通用对话框按钮
+        dialog: {
+            confirm: "确定",
+        },
     },
 
     // 登录页
