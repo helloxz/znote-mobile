@@ -81,6 +81,19 @@
         </div>
       </div>
     </ion-content>
+
+    <!-- 移动笔记弹窗 -->
+    <MoveCategoryModal
+      :show="showMoveNoteModal"
+      type="note"
+      :source-id="moveNoteId"
+      :source-name="moveNoteName"
+      :category-tree="noteStore.currentCategoryTree"
+      :current-category-id="moveNoteCurrentCategoryId"
+      @confirm="onMoveNoteConfirm"
+      @cancel="onMoveNoteCancel"
+      @update:show="showMoveNoteModal = $event"
+    />
   </ion-page>
 </template>
 
@@ -112,6 +125,7 @@ import type { Note } from "@/types/note";
 import SidebarMenu from "@/components/note/SidebarMenu.vue";
 import LogoutMenu from "@/components/LogoutMenu.vue";
 import NoteListItem from "@/components/note/NoteListItem.vue";
+import MoveCategoryModal from "@/components/note/MoveCategoryModal.vue";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -295,6 +309,12 @@ const onLogout = async () => {
 
 // ========== 笔记列表：拖拽排序 + 长按菜单 ==========
 
+// 移动笔记弹窗状态
+const showMoveNoteModal = ref(false);
+const moveNoteId = ref(0);
+const moveNoteName = ref("");
+const moveNoteCurrentCategoryId = ref<number | undefined>(undefined);
+
 // 本地笔记副本（VueDraggable 直接 mutate，watch 同步 store 数据）
 const localNotes = ref<Note[]>([]);
 
@@ -381,10 +401,33 @@ const onNoteContextMenu = async (note: Note) => {
       ok ? t("note.list.trash.success") : t("unknown"),
       ok ? "success" : "danger"
     );
-  } else if (role === "share" || role === "move") {
+  } else if (role === "move") {
+    // 打开移动笔记弹窗
+    moveNoteId.value = note.id;
+    moveNoteName.value = note.title || t("note.untitled");
+    moveNoteCurrentCategoryId.value = note.notebook_id;
+    showMoveNoteModal.value = true;
+  } else if (role === "share") {
     // 占位：暂未实现
     await showToast(t("note.list.feature.comingSoon"));
   }
+};
+
+/** 移动笔记确认：调用 store 更新 notebook_id */
+const onMoveNoteConfirm = async (targetId: number) => {
+  showMoveNoteModal.value = false;
+  const ok = await noteStore.updateNote(moveNoteId.value, {
+    notebook_id: targetId,
+  });
+  await showToast(
+    ok ? t("note.move.success") : t("unknown"),
+    ok ? "success" : "danger"
+  );
+};
+
+/** 移动笔记取消 */
+const onMoveNoteCancel = () => {
+  showMoveNoteModal.value = false;
 };
 
 /** Toast 提示 */

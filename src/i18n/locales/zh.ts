@@ -52,6 +52,7 @@ export default {
     "note.password.logoutCountdown": "密码修改成功，{seconds} 秒后自动退出登录",
     // 分类操作菜单
     "note.category.renameText": "重命名",
+    "note.category.moveText": "移动分类",
     "note.category.deleteText": "删除分类",
     "note.category.cancel": "取消",
     "note.category.rename.title": "重命名分类",
@@ -62,6 +63,17 @@ export default {
     "note.category.delete.hint": "请输入分类名称确认",
     "note.category.delete.confirmText": "确认删除",
     "note.category.delete.success": "删除成功",
+    // 移动分类弹窗
+    "note.category.move.title": "移动分类",
+    "note.category.move.source": "正在移动",
+    "note.category.move.selectTarget": "请选择目标分类",
+    "note.category.move.current": "当前位置",
+    "note.category.move.toHere": "移动到此处",
+    "note.category.move.topLevel": "移动到顶层",
+    "note.category.move.success": "移动成功",
+    // 移动笔记弹窗（复用移动分类弹窗组件）
+    "note.move.title_note": "移动笔记",
+    "note.move.success": "移动成功",
     // 通用对话框按钮
     "note.dialog.confirm": "确定",
 

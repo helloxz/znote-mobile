@@ -30,6 +30,18 @@
         </div>
       </div>
     </div>
+
+    <!-- 移动分类弹窗 -->
+    <MoveCategoryModal
+      :show="showMoveModal"
+      :source-id="moveSourceId"
+      :source-name="moveSourceName"
+      :category-tree="noteStore.currentCategoryTree"
+      :exclude-node-ids="moveExcludeIds"
+      @confirm="onMoveConfirm"
+      @cancel="onMoveCancel"
+      @update:show="showMoveModal = $event"
+    />
   </div>
 </template>
 
@@ -48,6 +60,7 @@ import { useNoteStore } from "@/stores/note";
 import type { NotebookNode } from "@/types/note";
 import CategoryTreeNode from "@/components/note/CategoryTreeNode.vue";
 import NotebookSwitcher from "@/components/note/NotebookSwitcher.vue";
+import MoveCategoryModal from "@/components/note/MoveCategoryModal.vue";
 
 const { t } = useI18n();
 const noteStore = useNoteStore();
@@ -121,7 +134,45 @@ const onSelectCategory = (id: number) => {
   emit("select");
 };
 
-// ========== 分类长按菜单（编辑/删除） ==========
+// ========== 分类长按菜单（编辑/移动/删除） ==========
+
+// 移动分类弹窗状态
+const showMoveModal = ref(false);
+const moveSourceId = ref(0);
+const moveSourceName = ref("");
+const moveExcludeIds = ref<number[]>([]);
+
+/**
+ * 递归收集节点自身及所有子孙 id（用于移动分类时排除）
+ * 防止用户把分类移到自己或自己的子孙下（循环引用）
+ */
+const collectDescendantIds = (
+  nodeId: number,
+  tree: NotebookNode[]
+): number[] => {
+  const ids: number[] = [nodeId];
+  const walk = (nodes: NotebookNode[]) => {
+    for (const node of nodes) {
+      if (node.id === nodeId) {
+        // 找到目标节点，收集其所有子孙
+        const collectChildren = (n: NotebookNode) => {
+          ids.push(n.id);
+          if (n.children?.length) {
+            n.children.forEach(collectChildren);
+          }
+        };
+        node.children?.forEach(collectChildren);
+        return true;
+      }
+      if (node.children?.length && walk(node.children)) {
+        return true;
+      }
+    }
+    return false;
+  };
+  walk(tree);
+  return ids;
+};
 
 /** 长按分类触发：弹出底部 Action Sheet */
 const onContextMenu = async (node: NotebookNode) => {
@@ -131,6 +182,10 @@ const onContextMenu = async (node: NotebookNode) => {
       {
         text: t("note.category.renameText"),
         role: "rename",
+      },
+      {
+        text: t("note.category.moveText"),
+        role: "move",
       },
       {
         text: t("note.category.deleteText"),
@@ -146,6 +201,15 @@ const onContextMenu = async (node: NotebookNode) => {
   const { role } = await actionSheet.onDidDismiss();
   if (role === "rename") {
     await showRenameAlert(node);
+  } else if (role === "move") {
+    // 收集排除节点（自身 + 子孙），打开移动分类弹窗
+    moveSourceId.value = node.id;
+    moveSourceName.value = node.title;
+    moveExcludeIds.value = collectDescendantIds(
+      node.id,
+      noteStore.currentCategoryTree
+    );
+    showMoveModal.value = true;
   } else if (role === "delete") {
     await showDeleteConfirmAlert(node);
   }
@@ -213,6 +277,21 @@ const showDeleteConfirmAlert = async (node: NotebookNode) => {
     ],
   });
   await alert.present();
+};
+
+/** 移动分类确认：调用 store 移动 */
+const onMoveConfirm = async (parentId: number | null) => {
+  showMoveModal.value = false;
+  const ok = await noteStore.moveCategory(moveSourceId.value, parentId);
+  await showToast(
+    ok ? t("note.category.move.success") : t("unknown"),
+    ok ? "success" : "danger"
+  );
+};
+
+/** 移动分类取消 */
+const onMoveCancel = () => {
+  showMoveModal.value = false;
 };
 
 /** Toast 提示 */

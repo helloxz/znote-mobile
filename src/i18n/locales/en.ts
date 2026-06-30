@@ -52,6 +52,7 @@ export default {
     "note.password.logoutCountdown": "Password changed, logging out in {seconds} seconds",
     // Category actions
     "note.category.renameText": "Rename",
+    "note.category.moveText": "Move category",
     "note.category.deleteText": "Delete category",
     "note.category.cancel": "Cancel",
     "note.category.rename.title": "Rename Category",
@@ -62,6 +63,17 @@ export default {
     "note.category.delete.hint": "Type the category name to confirm",
     "note.category.delete.confirmText": "Confirm Delete",
     "note.category.delete.success": "Deleted successfully",
+    // Move category modal
+    "note.category.move.title": "Move Category",
+    "note.category.move.source": "Moving",
+    "note.category.move.selectTarget": "Select target category",
+    "note.category.move.current": "Current location",
+    "note.category.move.toHere": "Move here",
+    "note.category.move.topLevel": "Move to top level",
+    "note.category.move.success": "Moved successfully",
+    // Move note modal (reuses move category modal)
+    "note.move.title_note": "Move Note",
+    "note.move.success": "Moved successfully",
     // Dialog button
     "note.dialog.confirm": "Confirm",
 

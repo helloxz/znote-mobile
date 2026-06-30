@@ -367,6 +367,34 @@ export const useNoteStore = defineStore("note", {
         },
 
         /**
+         * 移动分类到新的父节点
+         * 调 API → 成功后重载整棵树（移动会导致树结构大范围变化）
+         * @param id 要移动的分类 id
+         * @param parentId 目标父节点 id，null 表示移动到顶层
+         * @returns 是否成功
+         */
+        async moveCategory(
+            id: number,
+            parentId: number | null
+        ): Promise<boolean> {
+            this.loadingTree = true;
+            try {
+                const res = await updateNotebook(id, {
+                    parent_id: parentId,
+                });
+                const body = res.data as ApiResponse<Notebook>;
+                if (body.code === 200) {
+                    // 移动分类后重载整棵树（树结构大范围变化，就地更新难以保证一致性）
+                    await this.loadNotebookTree();
+                    return true;
+                }
+                return false;
+            } finally {
+                this.loadingTree = false;
+            }
+        },
+
+        /**
          * 笔记排序（同分类内拖拽排序）
          * 调 API → 用后端返回的有序列表整体覆盖该分类缓存
          * @returns 是否成功（失败时调用方应回退本地顺序）
@@ -395,7 +423,8 @@ export const useNoteStore = defineStore("note", {
 
         /**
          * 更新笔记（置顶/取消置顶、移动等）
-         * 调 API → 就地更新对应分类缓存中的笔记字段，不重载列表
+         * 调 API → 就地更新对应分类缓存中的笔记字段
+         * 移动笔记时（notebook_id 变化）：从原分类缓存移除，目标分类标记需重载
          * @returns 是否成功
          */
         async updateNote(
@@ -407,21 +436,39 @@ export const useNoteStore = defineStore("note", {
                 const body = res.data as ApiResponse<Note>;
                 if (body.code === 200 && body.data) {
                     const updated = body.data;
-                    // 在所有分类缓存中查找并就地更新该笔记
+                    // 在所有分类缓存中查找该笔记
                     for (const catId of Object.keys(this.notesByCategory)) {
                         const list = this.notesByCategory[Number(catId)];
                         const idx = list.findIndex((n) => n.id === id);
                         if (idx !== -1) {
-                            // 替换字段后按后端口径重排（置顶上浮等），保证列表顺序正确
-                            const newList = sortNotesList([
-                                ...list.slice(0, idx),
-                                { ...list[idx], ...updated },
-                                ...list.slice(idx + 1),
-                            ]);
-                            this.notesByCategory = {
-                                ...this.notesByCategory,
-                                [Number(catId)]: newList,
-                            };
+                            // 笔记被移动到其他分类（notebook_id 变化）：从原分类移除
+                            if (
+                                payload.notebook_id !== undefined &&
+                                payload.notebook_id !== Number(catId)
+                            ) {
+                                const newList = list.filter(
+                                    (n) => n.id !== id
+                                );
+                                this.notesByCategory = {
+                                    ...this.notesByCategory,
+                                    [Number(catId)]: newList,
+                                };
+                                // 清除目标分类的缓存标记，下次选中时会重新加载
+                                this.loadedCategoryIds.delete(
+                                    payload.notebook_id
+                                );
+                            } else {
+                                // 普通更新（置顶等）：就地替换字段并重排
+                                const newList = sortNotesList([
+                                    ...list.slice(0, idx),
+                                    { ...list[idx], ...updated },
+                                    ...list.slice(idx + 1),
+                                ]);
+                                this.notesByCategory = {
+                                    ...this.notesByCategory,
+                                    [Number(catId)]: newList,
+                                };
+                            }
                             break;
                         }
                     }
