@@ -74,6 +74,22 @@ export function sortNotes(items: SortNoteItem[]) {
     });
 }
 
+/** 创建笔记的入参 */
+export interface CreateNotePayload {
+    notebook_id: number;   // 必传：分类ID
+    title: string;         // 必传：笔记标题
+    content?: string;      // 可选：笔记内容
+}
+
+/**
+ * 创建笔记
+ * 路由：POST /api/user/notebook/note/create，body：{ notebook_id, title, content }
+ * 返回创建后的 Note 对象
+ */
+export function createNote(payload: CreateNotePayload) {
+    return req.post<ApiResponse<Note>>("/api/user/notebook/note/create", payload);
+}
+
 /** 更新笔记的入参（部分字段，用于置顶等） */
 export interface UpdateNotePayload {
     title?: string;

@@ -90,6 +90,15 @@
       </div>
     </ion-content>
 
+    <!-- 悬浮新建笔记按钮 -->
+    <button
+      class="fab-create"
+      :class="{ 'fab-disabled': !noteStore.activeCategoryId || noteStore.searchMode }"
+      @click="onCreateNote"
+    >
+      <ion-icon :icon="addOutline" />
+    </button>
+
     <!-- 移动笔记弹窗 -->
     <MoveCategoryModal
       :show="showMoveNoteModal"
@@ -128,6 +137,7 @@ import {
   menuOutline,
   cogOutline,
   documentsOutline,
+  addOutline,
 } from "ionicons/icons";
 import { useUserStore } from "@/stores/user";
 import { useNoteStore } from "@/stores/note";
@@ -369,6 +379,24 @@ const onDragEnd = async () => {
 /** 短按笔记：进入笔记详情子页面（预览态） */
 const onNoteSelect = (note: Note) => {
   router.push(`/note/${note.id}`);
+};
+
+/** 创建新笔记：自动创建默认笔记后跳转编辑页 */
+const onCreateNote = async () => {
+  // 未选中分类或搜索模式下不响应
+  if (!noteStore.activeCategoryId || noteStore.searchMode) return;
+
+  const note = await noteStore.createNote({
+    notebook_id: noteStore.activeCategoryId,
+    title: t("note.untitled"),
+    content: "",
+  });
+  if (note) {
+    // 创建成功，跳转到编辑页面（edit=true 直接进入编辑态）
+    router.push(`/note/${note.id}?edit=true`);
+  } else {
+    await showToast(t("unknown"), "danger");
+  }
 };
 
 /** 长按笔记：弹出 Action Sheet 菜单 */
@@ -631,5 +659,40 @@ const showToast = async (message: string, color: string = "danger") => {
   margin-top: 12px;
   font-size: var(--z-fs-body);
   color: var(--z-text-tertiary);
+}
+
+/* 悬浮新建笔记按钮 */
+.fab-create {
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  right: 20px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--ion-color-primary);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
+}
+
+.fab-create ion-icon {
+  font-size: 24px;
+}
+
+.fab-create:active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 禁用状态 */
+.fab-create.fab-disabled {
+  opacity: 0.4;
+  pointer-events: none;
 }
 </style>

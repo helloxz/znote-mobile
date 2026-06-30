@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import {
     fetchNotebookList,
     fetchNoteList,
+    createNote,
     updateNotebook,
     deleteNotebooks,
     sortNotes,
@@ -289,6 +290,37 @@ export const useNoteStore = defineStore("note", {
                 }
             } finally {
                 this.loadingNotes = false;
+            }
+        },
+
+        /**
+         * 创建笔记
+         * 调 API → 成功后插入对应分类缓存头部
+         * @returns 创建后的笔记对象，失败返回 null
+         */
+        async createNote(payload: {
+            notebook_id: number;
+            title: string;
+            content?: string;
+        }): Promise<Note | null> {
+            try {
+                const res = await createNote(payload);
+                const body = res.data as ApiResponse<Note>;
+                if (body.code === 200 && body.data) {
+                    const note = body.data;
+                    // 将新笔记插入对应分类缓存头部
+                    const existing =
+                        this.notesByCategory[note.notebook_id] ?? [];
+                    this.notesByCategory = {
+                        ...this.notesByCategory,
+                        [note.notebook_id]: [note, ...existing],
+                    };
+                    this.loadedCategoryIds.add(note.notebook_id);
+                    return note;
+                }
+                return null;
+            } catch {
+                return null;
             }
         },
 

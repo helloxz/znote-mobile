@@ -253,6 +253,11 @@ onMounted(() => {
   const id = Number(route.params.noteId);
   if (id) loadNote(id);
 
+  // 路由参数 edit=true 时直接进入编辑态（新建笔记场景）
+  if (route.query.edit === "true") {
+    mode.value = "edit";
+  }
+
   // 监听 visualViewport 变化（键盘弹出/收起），动态调整 edit-page 的 bottom
   if (window.visualViewport) {
     const handler = () => {
