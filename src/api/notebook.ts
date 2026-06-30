@@ -94,3 +94,25 @@ export function updateNote(id: number, payload: UpdateNotePayload) {
     });
 }
 
+/**
+ * 移入回收站（软删除：is_deleted=1, deleted_at=now）
+ * 路由：POST /api/user/notebook/note/delete，body：{ id }
+ * 返回软删除后的笔记对象
+ */
+export function deleteNote(id: number) {
+    return req.post<ApiResponse<Note>>("/api/user/notebook/note/delete", {
+        id,
+    });
+}
+
+/**
+ * 搜索笔记（跨顶层笔记本下所有子分类，BM25 相关性排序，最多 50 条）
+ * 路由：GET /api/user/note/search?notebook_id=<顶层笔记本>&keyword=<关键词>
+ * 关键词需 ≥ 3 字符（trigram 分词器硬性要求）
+ */
+export function searchNotes(notebookId: number, keyword: string) {
+    return req.get<ApiResponse<Note[]>>("/api/user/note/search", {
+        params: { notebook_id: notebookId, keyword },
+    });
+}
+

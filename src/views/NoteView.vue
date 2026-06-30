@@ -30,14 +30,19 @@
       </div>
     </div>
 
-    <ion-content :fullscreen="true" id="note-content" class="note-content">
+    <ion-content
+      :fullscreen="true"
+      id="note-content"
+      class="note-content"
+      ref="contentRef"
+    >
       <!-- 占位：撑开与 custom-header 等高的空间，避免内容被 fixed header 遮挡 -->
       <div class="header-placeholder"></div>
 
       <!-- 笔记列表 -->
       <div class="note-list">
-        <!-- 加载中：骨架屏 -->
-        <template v-if="noteStore.loadingNotes">
+        <!-- 加载中：骨架屏（分类加载 or 搜索加载） -->
+        <template v-if="noteStore.loadingNotes || noteStore.loadingSearch">
           <div v-for="i in 6" :key="`sk-${i}`" class="note-card skeleton-card">
             <ion-skeleton-text :animated="true" class="sk-title" />
             <ion-skeleton-text :animated="true" class="sk-desc" />
@@ -45,21 +50,21 @@
           </div>
         </template>
 
-        <!-- 笔记列表（可拖拽排序） -->
+        <!-- 笔记列表（可拖拽排序，搜索态下禁用拖拽） -->
         <template v-else-if="noteStore.currentNotes.length > 0">
           <VueDraggable
             v-model="localNotes"
             class="draggable-list"
             :handle="'.drag-handle'"
             :animation="150"
-            :disabled="sorting"
+            :disabled="sorting || noteStore.searchMode"
             @end="onDragEnd"
           >
             <NoteListItem
               v-for="note in localNotes"
               :key="note.id"
               :note="note"
-              :draggable="note.is_pinned !== 1"
+              :draggable="note.is_pinned !== 1 && !noteStore.searchMode"
               @select="onNoteSelect"
               @contextmenu="onNoteContextMenu"
             />
@@ -69,7 +74,9 @@
         <!-- 空状态 -->
         <div v-else class="empty-state">
           <ion-icon :icon="documentsOutline" class="empty-icon" />
-          <p class="empty-text">{{ t("note.empty") }}</p>
+          <p class="empty-text">{{
+            noteStore.searchMode ? t("note.search.empty") : t("note.empty")
+          }}</p>
         </div>
       </div>
     </ion-content>
@@ -77,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import {
@@ -110,12 +117,99 @@ const { t } = useI18n();
 const userStore = useUserStore();
 const noteStore = useNoteStore();
 
-// 搜索关键字（搜索功能后续接入）
+// ion-content 实例引用（用于 dismiss overlay 后恢复滚动）
+const contentRef = ref<InstanceType<typeof IonContent> | null>(null);
+
+/**
+ * 强制清理 overlay dismiss 后可能残留的滚动锁。
+ *
+ * 根因（@ionic/core 8.8 源码确认）：
+ * actionSheet present 时给 document.body 加 class "backdrop-no-scroll"，
+ * 对应 CSS `body.backdrop-no-scroll{overflow:hidden}`。dismiss 时只有当
+ * "当前 overlay 是最后一个锁根 overlay"才 remove 该 class；长按手势在 touch
+ * 序列中途弹 overlay 的场景容易触发条件不满足，导致 class 残留 → body 永远
+ * overflow:hidden → 笔记列表无法滚动。
+ *
+ * 核心修复已在 NoteListItem.vue / CategoryTreeNode.vue 中完成（改为 touchend
+ * 后再 present actionSheet），此函数作为安全兜底，确保 Ionic 内部 cleanup
+ * 先执行后再清理残留。
+ */
+const restoreScroll = () => {
+  // 延迟一帧，让 Ionic 内部 dismiss 流程先完成
+  requestAnimationFrame(() => {
+    // 1. body 上的 backdrop-no-scroll（最关键，actionSheet 的真正锁）
+    document.body.classList.remove("backdrop-no-scroll");
+    document.body.style.removeProperty("overflow");
+
+    // 2. view container 的 aria-hidden（present 时 setRootAriaHidden(true) 的残留）
+    const appRoot = document.querySelector("ion-app") || document.body;
+    const viewContainer = appRoot.querySelector(
+      "ion-router-outlet, #ion-view-container-root"
+    );
+    if (viewContainer) {
+      viewContainer.removeAttribute("aria-hidden");
+      viewContainer.removeAttribute("inert");
+    }
+
+    // 3. ion-content scrollEl 的 inline overflow（保险清理）
+    const ionContentEl = contentRef.value?.$el as
+      | (HTMLElement & { getScrollElement?: () => Promise<HTMLElement> })
+      | undefined;
+    void ionContentEl?.getScrollElement?.().then((scrollEl) => {
+      scrollEl.style.removeProperty("overflow");
+      scrollEl.style.removeProperty("overflow-y");
+      scrollEl.style.removeProperty("touch-action");
+      scrollEl.style.removeProperty("pointer-events");
+    });
+
+    // 触发重排，恢复 iOS 的滚动惯性
+    window.dispatchEvent(new Event("resize"));
+  });
+
+  // 二次兜底：100ms 后再清理一次，防止 Ionic 异步重新加锁
+  setTimeout(() => {
+    document.body.classList.remove("backdrop-no-scroll");
+    document.body.style.removeProperty("overflow");
+  }, 100);
+};
+
+// 搜索关键字
 const keyword = ref("");
 
 // 首屏加载笔记本树
 onMounted(() => {
   void noteStore.loadNotebookTree();
+});
+
+// ========== 搜索：输入达 3 字符自动搜索，清空恢复原列表 ==========
+let searchTimer: ReturnType<typeof setTimeout> | null = null;
+
+watch(keyword, (val) => {
+  const kw = val.trim();
+  // 清除上一次防抖
+  if (searchTimer) {
+    clearTimeout(searchTimer);
+    searchTimer = null;
+  }
+  // 不足 3 字符：退出搜索态，恢复原分类笔记
+  if (kw.length < 3) {
+    if (noteStore.searchMode) {
+      noteStore.clearSearch();
+    }
+    return;
+  }
+  // 防抖 300ms 后调后端搜索
+  searchTimer = setTimeout(() => {
+    void noteStore.searchNotes(kw);
+  }, 300);
+});
+
+// 组件卸载时清理防抖定时器
+onUnmounted(() => {
+  if (searchTimer) {
+    clearTimeout(searchTimer);
+    searchTimer = null;
+  }
 });
 
 /** 顶部标题：当前分类名 → 笔记本名 → ZNote */
@@ -242,6 +336,9 @@ const onNoteContextMenu = async (note: Note) => {
   await actionSheet.present();
   const { role } = await actionSheet.onDidDismiss();
 
+  // overlay dismiss 后主动恢复 ion-content 滚动（长按手势可能打断 touch 序列导致滚动卡住）
+  restoreScroll();
+
   if (role === "pin") {
     // 置顶/取消置顶：复用 updateNote 传 is_pinned
     const next = isPinned ? 0 : 1;
@@ -252,7 +349,14 @@ const onNoteContextMenu = async (note: Note) => {
         : t("unknown"),
       ok ? "success" : "danger"
     );
-  } else if (role === "share" || role === "move" || role === "trash") {
+  } else if (role === "trash") {
+    // 移入回收站：软删除，store 更新后列表自动刷新
+    const ok = await noteStore.deleteNote(note.id);
+    await showToast(
+      ok ? t("note.list.trash.success") : t("unknown"),
+      ok ? "success" : "danger"
+    );
+  } else if (role === "share" || role === "move") {
     // 占位：暂未实现
     await showToast(t("note.list.feature.comingSoon"));
   }

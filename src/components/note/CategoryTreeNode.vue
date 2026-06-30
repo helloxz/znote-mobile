@@ -9,6 +9,7 @@
       @touchstart.passive="onTouchStart"
       @touchmove.passive="onTouchMove"
       @touchend="onTouchEnd"
+      @touchcancel="onTouchCancel"
       @contextmenu.prevent="onContextMenu"
     >
       <!-- 展开/折叠箭头（有子节点才可点） -->
@@ -98,21 +99,23 @@ const onToggle = () => toggleExpand(props.node.id, props.level);
 
 // ========== 长按手势 ==========
 // 长按超过 500ms 触发 contextmenu，touchmove 超过 10px 视为滑动取消
+// 关键设计：长按 500ms 后只设置标记，在 touchend 时才 emit。
+// 这样 actionSheet 在 touch 序列结束后才 present，避免 Ionic 的 scroll lock 残留。
 let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+let longPressTriggered = false;
 const startPoint = ref({ x: 0, y: 0 });
 
 const onTouchStart = (e: TouchEvent) => {
   const touch = e.touches[0];
   startPoint.value = { x: touch.clientX, y: touch.clientY };
+  longPressTriggered = false;
   longPressTimer = setTimeout(() => {
-    // 阻止 ion-content 接管后续触摸
-    e.preventDefault();
-    emit("contextmenu", props.node);
+    longPressTriggered = true;
   }, 500);
 };
 
 const onTouchMove = (e: TouchEvent) => {
-  if (!longPressTimer) return;
+  if (!longPressTimer && !longPressTriggered) return;
   const touch = e.touches[0];
   const dx = touch.clientX - startPoint.value.x;
   const dy = touch.clientY - startPoint.value.y;
@@ -124,9 +127,18 @@ const onTouchMove = (e: TouchEvent) => {
 
 const onTouchEnd = () => {
   clearTimer();
+  if (longPressTriggered) {
+    longPressTriggered = false;
+    emit("contextmenu", props.node);
+  }
+};
+
+const onTouchCancel = () => {
+  clearTimer();
 };
 
 const clearTimer = () => {
+  longPressTriggered = false;
   if (longPressTimer) {
     clearTimeout(longPressTimer);
     longPressTimer = null;

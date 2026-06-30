@@ -5,6 +5,8 @@
     @touchstart.passive="onTouchStart"
     @touchmove.passive="onTouchMove"
     @touchend="onTouchEnd"
+    @touchcancel="onTouchCancel"
+    @contextmenu.prevent="onContextMenu"
   >
     <!-- 拖拽把手（左侧，置顶时禁用交互但保持显示以对称） -->
     <div class="drag-handle" :class="{ disabled: !draggable }">
@@ -72,20 +74,23 @@ const formattedTime = computed(() => {
 const onClick = () => emit("select", props.note);
 
 // ========== 长按手势（仅卡片主体，把手区域由 sortablejs 接管） ==========
+// 关键设计：长按 500ms 后只设置标记，在 touchend 时才 emit contextmenu。
+// 这样 actionSheet 在 touch 序列结束后才 present，避免 Ionic 的 scroll lock 残留。
 let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+let longPressTriggered = false;
 let startPoint = { x: 0, y: 0 };
 
 const onTouchStart = (e: TouchEvent) => {
   const touch = e.touches[0];
   startPoint = { x: touch.clientX, y: touch.clientY };
+  longPressTriggered = false;
   longPressTimer = setTimeout(() => {
-    e.preventDefault();
-    emit("contextmenu", props.note);
+    longPressTriggered = true;
   }, 500);
 };
 
 const onTouchMove = (e: TouchEvent) => {
-  if (!longPressTimer) return;
+  if (!longPressTimer && !longPressTriggered) return;
   const touch = e.touches[0];
   const dx = touch.clientX - startPoint.x;
   const dy = touch.clientY - startPoint.y;
@@ -97,13 +102,27 @@ const onTouchMove = (e: TouchEvent) => {
 
 const onTouchEnd = () => {
   clearTimer();
+  if (longPressTriggered) {
+    longPressTriggered = false;
+    emit("contextmenu", props.note);
+  }
+};
+
+const onTouchCancel = () => {
+  clearTimer();
 };
 
 const clearTimer = () => {
+  longPressTriggered = false;
   if (longPressTimer) {
     clearTimeout(longPressTimer);
     longPressTimer = null;
   }
+};
+
+/** PC 端右键触发（桌面调试用） */
+const onContextMenu = () => {
+  emit("contextmenu", props.note);
 };
 </script>
 

@@ -20,13 +20,17 @@ export default {
     // 笔记页
     note: {
         title: "ZNote",
-        searchPlaceholder: "Search notes",
+        searchPlaceholder: "Type at least 3 characters to search",
         notebooks: "Notebooks",
         switchNotebook: "Switch notebook",
         categories: "Categories",
         empty: "No content yet",
         loading: "Loading...",
         untitled: "Untitled",
+        // 搜索
+        search: {
+            empty: "No notes found",
+        },
         // 笔记列表操作菜单
         list: {
             pin: "Pin",
@@ -39,6 +43,7 @@ export default {
             "unpin.success": "Unpinned",
             "sort.success": "Sorted successfully",
             "sort.failed": "Sort failed, please retry",
+            "trash.success": "Moved to trash",
             feature: {
                 comingSoon: "Feature coming soon",
             },

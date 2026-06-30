@@ -20,13 +20,17 @@ export default {
     // 笔记页
     note: {
         title: "ZNote",
-        searchPlaceholder: "搜索笔记",
+        searchPlaceholder: "输入至少3个字符进行搜索",
         notebooks: "笔记本",
         switchNotebook: "切换笔记本",
         categories: "分类",
         empty: "暂无内容",
         loading: "加载中...",
         untitled: "无标题",
+        // 搜索
+        search: {
+            empty: "未找到相关笔记",
+        },
         // 笔记列表操作菜单
         list: {
             pin: "置顶",
@@ -39,6 +43,7 @@ export default {
             "unpin.success": "已取消置顶",
             "sort.success": "排序成功",
             "sort.failed": "排序失败，请重试",
+            "trash.success": "已移入回收站",
             feature: {
                 comingSoon: "功能开发中",
             },

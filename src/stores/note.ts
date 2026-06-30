@@ -6,6 +6,8 @@ import {
     deleteNotebooks,
     sortNotes,
     updateNote,
+    deleteNote,
+    searchNotes,
     type UpdateNotebookPayload,
     type SortNoteItem,
     type UpdateNotePayload,
@@ -145,6 +147,11 @@ export const useNoteStore = defineStore("note", {
         // 加载状态
         loadingTree: false,
         loadingNotes: false,
+        // 搜索态
+        searchMode: false, // 是否处于搜索态（列表显示搜索结果而非分类笔记）
+        searchKeyword: "", // 当前搜索关键词
+        searchResults: [] as Note[], // 搜索结果（跨子分类，BM25 相关性排序）
+        loadingSearch: false, // 搜索加载中
     }),
 
     getters: {
@@ -164,8 +171,10 @@ export const useNoteStore = defineStore("note", {
             );
             return nb?.children ?? [];
         },
-        /** 当前分类下的笔记列表 */
+        /** 当前列表笔记：搜索态返回搜索结果，否则返回当前分类笔记 */
         currentNotes: (state): Note[] => {
+            // 搜索态：直接返回搜索结果（已按 BM25 排序，不重新排序）
+            if (state.searchMode) return state.searchResults;
             if (state.activeCategoryId === null) return [];
             return state.notesByCategory[state.activeCategoryId] ?? [];
         },
@@ -218,6 +227,9 @@ export const useNoteStore = defineStore("note", {
         async switchNotebook(id: number): Promise<void> {
             this.activeNotebookId = id;
             await setActiveNotebookId(id);
+
+            // 切笔记本时清搜索态（搜索结果属于旧笔记本，已失效）
+            this.clearSearch();
 
             // 选中该笔记本下第一个分类
             const notebook = this.notebookTree.find((n) => n.id === id);
@@ -404,6 +416,73 @@ export const useNoteStore = defineStore("note", {
             } catch {
                 return false;
             }
+        },
+
+        /**
+         * 移入回收站（软删除）
+         * 调 API → 成功后从对应分类缓存 filter 移除该笔记
+         * store 更新后 currentNotes 变化 → NoteView watch 自动同步 localNotes → 列表自动刷新
+         * @returns 是否成功
+         */
+        async deleteNote(id: number): Promise<boolean> {
+            try {
+                const res = await deleteNote(id);
+                const body = res.data as ApiResponse<Note>;
+                if (body.code !== 200) return false;
+
+                // 遍历所有分类缓存，移除该笔记
+                for (const catId of Object.keys(this.notesByCategory)) {
+                    const list = this.notesByCategory[Number(catId)];
+                    const idx = list.findIndex((n) => n.id === id);
+                    if (idx !== -1) {
+                        this.notesByCategory = {
+                            ...this.notesByCategory,
+                            [Number(catId)]: list.filter((n) => n.id !== id),
+                        };
+                        break; // 一条笔记只在一个分类里
+                    }
+                }
+                return true;
+            } catch {
+                return false;
+            }
+        },
+
+        /**
+         * 搜索笔记（跨顶层笔记本下所有子分类，BM25 相关性排序）
+         * 设 searchMode=true → 调 API → 存 searchResults
+         */
+        async searchNotes(keyword: string): Promise<void> {
+            if (this.activeNotebookId === null) return;
+            this.searchMode = true;
+            this.searchKeyword = keyword;
+            this.loadingSearch = true;
+            try {
+                const res = await searchNotes(
+                    this.activeNotebookId,
+                    keyword
+                );
+                const body = res.data as ApiResponse<Note[]>;
+                if (body.code === 200) {
+                    this.searchResults = body.data ?? [];
+                } else {
+                    this.searchResults = [];
+                }
+            } catch {
+                this.searchResults = [];
+            } finally {
+                this.loadingSearch = false;
+            }
+        },
+
+        /**
+         * 清除搜索态，恢复原分类列表
+         * 不主动重载分类笔记，靠 currentNotes getter 隐式切换回 notesByCategory
+         */
+        clearSearch(): void {
+            this.searchMode = false;
+            this.searchKeyword = "";
+            this.searchResults = [];
         },
     },
 });
