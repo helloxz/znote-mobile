@@ -29,6 +29,10 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/login',
     component: () => import('@/views/LoginPage.vue')
+  },
+  {
+    path: '/change-password',
+    component: () => import('@/views/ChangePasswordView.vue')
   }
 ]
 

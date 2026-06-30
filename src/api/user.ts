@@ -42,3 +42,23 @@ export function login(params: LoginParams) {
 export function logout() {
     return req.post<ApiResponse<null>>("/api/user/logout");
 }
+
+/** 修改密码请求参数 */
+export interface ChangePasswordParams {
+    old_password: string;
+    new_password: string;
+    repeat_password: string;
+}
+
+/**
+ * 调用后端修改密码接口
+ * 路由：POST /api/user/change_password（userRouter，需 Bearer token）
+ * 成功后后端会撤销该用户所有 session（含当前 token），前端需清登录态跳登录页
+ */
+export function changePassword(params: ChangePasswordParams) {
+    return req.post<ApiResponse<null>>("/api/user/change_password", {
+        old_password: params.old_password,
+        new_password: params.new_password,
+        repeat_password: params.repeat_password,
+    });
+}

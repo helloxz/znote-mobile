@@ -57,3 +57,40 @@ export function deleteNotebooks(ids: number[]) {
     );
 }
 
+/** 笔记排序项 */
+export interface SortNoteItem {
+    id: number;
+    sort_order: number;
+}
+
+/**
+ * 笔记排序（同分类内拖拽排序）
+ * 路由：POST /api/user/notebook/note/sort，body：{ items: [{id, sort_order}] }
+ * sort_order 取新顺序的数组下标，发全量。返回该分类排序后的完整笔记列表
+ */
+export function sortNotes(items: SortNoteItem[]) {
+    return req.post<ApiResponse<Note[]>>("/api/user/notebook/note/sort", {
+        items,
+    });
+}
+
+/** 更新笔记的入参（部分字段，用于置顶等） */
+export interface UpdateNotePayload {
+    title?: string;
+    content?: string;
+    is_pinned?: number;
+    notebook_id?: number;
+}
+
+/**
+ * 更新笔记（置顶/取消置顶、移动等）
+ * 路由：POST /api/user/notebook/note/update，body：{ id, ...payload }
+ * 返回更新后的 Note
+ */
+export function updateNote(id: number, payload: UpdateNotePayload) {
+    return req.post<ApiResponse<Note>>("/api/user/notebook/note/update", {
+        id,
+        ...payload,
+    });
+}
+

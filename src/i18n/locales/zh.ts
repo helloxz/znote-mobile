@@ -21,13 +21,50 @@ export default {
     note: {
         title: "ZNote",
         searchPlaceholder: "搜索笔记",
-        logout: "退出登录",
         notebooks: "笔记本",
         switchNotebook: "切换笔记本",
         categories: "分类",
         empty: "暂无内容",
         loading: "加载中...",
         untitled: "无标题",
+        // 笔记列表操作菜单
+        list: {
+            pin: "置顶",
+            unpin: "取消置顶",
+            share: "创建分享",
+            move: "移动笔记",
+            trash: "移入回收站",
+            cancel: "取消",
+            "pin.success": "已置顶",
+            "unpin.success": "已取消置顶",
+            "sort.success": "排序成功",
+            "sort.failed": "排序失败，请重试",
+            feature: {
+                comingSoon: "功能开发中",
+            },
+        },
+        // 设置菜单项
+        menu: {
+            changePassword: "修改密码",
+            logout: "退出登录",
+        },
+        // 修改密码页
+        password: {
+            title: "修改密码",
+            old: "旧密码",
+            new: "新密码",
+            repeat: "确认新密码",
+            placeholder: {
+                old: "输入旧密码",
+                new: "输入新密码",
+                repeat: "再次输入新密码",
+            },
+            submit: "确认修改",
+            success: "密码修改成功",
+            fieldsRequired: "请填写所有密码字段",
+            notMatch: "两次输入的新密码不一致",
+            logoutCountdown: "密码修改成功，{seconds} 秒后自动退出登录",
+        },
         // 分类操作菜单
         category: {
             renameText: "重命名",
@@ -72,10 +109,15 @@ export default {
 
     // 登录相关
     "login.success": "登录成功",
-    "invalid.password": "密码格式无效",
+    "invalid.password": "密码格式无效，请输入 6-18 位密码，支持字母、数字或特殊字符",
     "invalid.username": "用户名格式无效",
     "invalid.email": "邮箱格式无效",
     "invalid.username.or.password": "用户名或密码错误",
+
+    // 修改密码相关（后端返回的 msg）
+    "user.old_password.invalid": "旧密码错误",
+    "user.password.repeat.not_match": "两次输入的新密码不一致",
+    "user.password.update.success": "密码修改成功",
 
     // 前端自定义校验错误
     "invalid.server.url": "服务器地址格式错误，应为 http(s)://域名 且末尾无斜杠",

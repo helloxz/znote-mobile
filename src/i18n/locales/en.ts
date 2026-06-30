@@ -21,13 +21,50 @@ export default {
     note: {
         title: "ZNote",
         searchPlaceholder: "Search notes",
-        logout: "Log Out",
         notebooks: "Notebooks",
         switchNotebook: "Switch notebook",
         categories: "Categories",
         empty: "No content yet",
         loading: "Loading...",
         untitled: "Untitled",
+        // 笔记列表操作菜单
+        list: {
+            pin: "Pin",
+            unpin: "Unpin",
+            share: "Create Share",
+            move: "Move Note",
+            trash: "Move to Trash",
+            cancel: "Cancel",
+            "pin.success": "Pinned",
+            "unpin.success": "Unpinned",
+            "sort.success": "Sorted successfully",
+            "sort.failed": "Sort failed, please retry",
+            feature: {
+                comingSoon: "Feature coming soon",
+            },
+        },
+        // 设置菜单项
+        menu: {
+            changePassword: "Change Password",
+            logout: "Log Out",
+        },
+        // 修改密码页
+        password: {
+            title: "Change Password",
+            old: "Old Password",
+            new: "New Password",
+            repeat: "Confirm New Password",
+            placeholder: {
+                old: "Enter old password",
+                new: "Enter new password",
+                repeat: "Re-enter new password",
+            },
+            submit: "Confirm Change",
+            success: "Password changed successfully",
+            fieldsRequired: "Please fill in all password fields",
+            notMatch: "The two new passwords do not match",
+            logoutCountdown: "Password changed, logging out in {seconds} seconds",
+        },
         // 分类操作菜单
         category: {
             renameText: "Rename",
@@ -72,10 +109,15 @@ export default {
 
     // 登录相关
     "login.success": "Signed in successfully",
-    "invalid.password": "Invalid password format",
+    "invalid.password": "Invalid password format, 6-18 chars with letters, digits or special chars",
     "invalid.username": "Invalid username format",
     "invalid.email": "Invalid email format",
     "invalid.username.or.password": "Incorrect username or password",
+
+    // 修改密码相关（后端返回的 msg）
+    "user.old_password.invalid": "Old password is incorrect",
+    "user.password.repeat.not_match": "The two new passwords do not match",
+    "user.password.update.success": "Password updated successfully",
 
     // 前端自定义校验错误
     "invalid.server.url": "Invalid server URL, expected http(s)://domain without trailing slash",

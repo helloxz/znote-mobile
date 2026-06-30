@@ -45,17 +45,25 @@
           </div>
         </template>
 
-        <!-- 笔记列表 -->
+        <!-- 笔记列表（可拖拽排序） -->
         <template v-else-if="noteStore.currentNotes.length > 0">
-          <div
-            v-for="note in noteStore.currentNotes"
-            :key="note.id"
-            class="note-card"
+          <VueDraggable
+            v-model="localNotes"
+            class="draggable-list"
+            :handle="'.drag-handle'"
+            :animation="150"
+            :disabled="sorting"
+            @end="onDragEnd"
           >
-            <div class="card-title">{{ note.title || t("note.untitled") }}</div>
-            <div class="card-desc">{{ summarize(note.content) }}</div>
-            <div class="card-time">{{ formatTime(note.updated_at) }}</div>
-          </div>
+            <NoteListItem
+              v-for="note in localNotes"
+              :key="note.id"
+              :note="note"
+              :draggable="note.is_pinned !== 1"
+              @select="onNoteSelect"
+              @contextmenu="onNoteContextMenu"
+            />
+          </VueDraggable>
         </template>
 
         <!-- 空状态 -->
@@ -69,7 +77,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import {
@@ -81,7 +89,10 @@ import {
   IonMenu,
   menuController,
   popoverController,
+  actionSheetController,
+  toastController,
 } from "@ionic/vue";
+import { VueDraggable } from "vue-draggable-plus";
 import {
   menuOutline,
   cogOutline,
@@ -89,8 +100,10 @@ import {
 } from "ionicons/icons";
 import { useUserStore } from "@/stores/user";
 import { useNoteStore } from "@/stores/note";
+import type { Note } from "@/types/note";
 import SidebarMenu from "@/components/note/SidebarMenu.vue";
 import LogoutMenu from "@/components/LogoutMenu.vue";
+import NoteListItem from "@/components/note/NoteListItem.vue";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -137,7 +150,7 @@ const onCategorySelected = () => {
   void menuController.close("note-menu");
 };
 
-/** 设置按钮 → Popover 退出菜单 */
+/** 设置按钮 → Popover 菜单（修改密码 / 退出登录） */
 const showSettingMenu = async (ev: Event) => {
   const popover = await popoverController.create({
     component: LogoutMenu,
@@ -150,6 +163,8 @@ const showSettingMenu = async (ev: Event) => {
   const { data } = await popover.onDidDismiss();
   if (data?.action === "logout") {
     await onLogout();
+  } else if (data?.action === "changePassword") {
+    router.push("/change-password");
   }
 };
 
@@ -159,33 +174,99 @@ const onLogout = async () => {
   router.replace("/login");
 };
 
-/** 提取笔记内容摘要（去 markdown 标记，取前两行） */
-const summarize = (content: string): string => {
-  if (!content) return "";
-  // 去除常见 markdown 标记
-  const plain = content
-    .replace(/^#+\s*/gm, "")
-    .replace(/[*_`~]/g, "")
-    .replace(/\[(.+?)\]\(.+?\)/g, "$1")
-    .trim();
-  // 取前两行非空
-  const lines = plain.split("\n").filter((l) => l.trim());
-  return lines.slice(0, 2).join(" ").slice(0, 80);
+// ========== 笔记列表：拖拽排序 + 长按菜单 ==========
+
+// 本地笔记副本（VueDraggable 直接 mutate，watch 同步 store 数据）
+const localNotes = ref<Note[]>([]);
+
+// 同步 store 数据到本地副本（store 数据变化时刷新）
+watch(
+  () => noteStore.currentNotes,
+  (notes) => {
+    localNotes.value = [...notes];
+  },
+  { immediate: true }
+);
+
+const sorting = ref(false);
+
+/** 拖拽结束：构建 items 调排序 API，失败回退 */
+const onDragEnd = async () => {
+  const items = localNotes.value.map((n, idx) => ({
+    id: n.id,
+    sort_order: idx,
+  }));
+  sorting.value = true;
+  const ok = await noteStore.sortNotes(items);
+  sorting.value = false;
+  if (!ok) {
+    // 失败回退到 store 顺序
+    localNotes.value = [...noteStore.currentNotes];
+    await showToast(t("note.list.sort.failed"));
+  }
 };
 
-/** 格式化更新时间（后端返回 ISO 字符串如 2025-09-09T19:42:22.000Z） */
-const formatTime = (ts: number | string): string => {
-  if (!ts) return "";
-  // JS 原生 Date 可直接解析 ISO 字符串和时间戳
-  const d = new Date(ts);
-  if (Number.isNaN(d.getTime())) return "";
-  // 格式化：YYYY-MM-DD HH:mm
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mi = String(d.getMinutes()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+/** 短按笔记：选中（功能预留，暂不跳转） */
+const onNoteSelect = (_note: Note) => {
+  // TODO: 后续接入笔记详情页
+};
+
+/** 长按笔记：弹出 Action Sheet 菜单 */
+const onNoteContextMenu = async (note: Note) => {
+  const isPinned = note.is_pinned === 1;
+  const actionSheet = await actionSheetController.create({
+    header: note.title || t("note.untitled"),
+    buttons: [
+      {
+        text: isPinned ? t("note.list.unpin") : t("note.list.pin"),
+        role: "pin",
+      },
+      {
+        text: t("note.list.share"),
+        role: "share",
+      },
+      {
+        text: t("note.list.move"),
+        role: "move",
+      },
+      {
+        text: t("note.list.trash"),
+        role: "trash",
+      },
+      {
+        text: t("note.list.cancel"),
+        role: "cancel",
+      },
+    ],
+  });
+  await actionSheet.present();
+  const { role } = await actionSheet.onDidDismiss();
+
+  if (role === "pin") {
+    // 置顶/取消置顶：复用 updateNote 传 is_pinned
+    const next = isPinned ? 0 : 1;
+    const ok = await noteStore.updateNote(note.id, { is_pinned: next });
+    await showToast(
+      ok
+        ? t(next === 1 ? "note.list.pin.success" : "note.list.unpin.success")
+        : t("unknown"),
+      ok ? "success" : "danger"
+    );
+  } else if (role === "share" || role === "move" || role === "trash") {
+    // 占位：暂未实现
+    await showToast(t("note.list.feature.comingSoon"));
+  }
+};
+
+/** Toast 提示 */
+const showToast = async (message: string, color: string = "danger") => {
+  const toast = await toastController.create({
+    message,
+    duration: 2000,
+    color,
+    position: "top",
+  });
+  await toast.present();
 };
 </script>
 
@@ -272,6 +353,13 @@ const formatTime = (ts: number | string): string => {
 /* 笔记列表 */
 .note-list {
   padding: 0 var(--z-space-md) var(--z-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--z-space-sm);
+}
+
+/* VueDraggable 根元素：继承 flex 布局 + gap，保证卡片之间有间隙 */
+.draggable-list {
   display: flex;
   flex-direction: column;
   gap: var(--z-space-sm);
