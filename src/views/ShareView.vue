@@ -45,8 +45,11 @@
             @touchcancel="onTouchCancel"
             @contextmenu.prevent="(e: Event) => onContextMenu(e, share)"
           >
-            <!-- 笔记标题 -->
-            <p class="card-title">{{ share.note_title }}</p>
+            <!-- 笔记标题（点击在浏览器中打开分享页面） -->
+            <p
+              class="card-title"
+              @click.stop="openShareLink(share)"
+            >{{ share.note_title }}</p>
 
             <!-- 底部：状态 + 到期日期 -->
             <div class="card-meta">
@@ -121,6 +124,13 @@ const formatDate = (ts: number | string | null): string => {
   const d = new Date(ms);
   if (Number.isNaN(d.getTime())) return "";
   return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+};
+
+/** 点击标题：在系统浏览器中打开分享页面 */
+const openShareLink = (share: ShareItem) => {
+  const serverUrl = getServerUrl();
+  const url = `${serverUrl}/s/${share.share_id}`;
+  window.open(url, "_system"); // Capacitor 中用 _system 打开系统浏览器
 };
 
 /** 加载分享列表 */
@@ -397,6 +407,12 @@ const showToast = async (message: string, color: string = "danger") => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.card-title:active {
+  color: var(--z-primary);
 }
 
 /* 底部信息行：状态标签 + 日期 */
