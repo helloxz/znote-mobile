@@ -16,7 +16,7 @@
               :title="t('note.detail.preview')"
               @click="onPreview"
             >
-              <ion-icon :icon="eyeOutline" />
+              <ion-icon :icon="readerOutline" />
             </button>
             <button
               class="icon-btn"
@@ -126,7 +126,7 @@ import {
   reloadOutline,
   alertCircleOutline,
   createOutline,
-  eyeOutline,
+  readerOutline,
   saveOutline,
   timeOutline,
 } from "ionicons/icons";
@@ -135,7 +135,7 @@ import { fetchNoteById } from "@/api/notebook";
 import type { Note } from "@/types/note";
 import type { ApiResponse } from "@/api/user";
 import MarkdownViewer from "@/components/note/MarkdownViewer.vue";
-import MarkdownEditor from "@/components/note/MarkdownEditor.vue";
+import MarkdownEditor from "@/components/note/MarkdownEditorBytemd.vue";
 import { useToast } from "@/composables/useToast";
 
 const route = useRoute();
