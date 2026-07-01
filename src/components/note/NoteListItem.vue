@@ -94,6 +94,8 @@ let longPressTriggered = false;
 let startPoint = { x: 0, y: 0 };
 
 const onTouchStart = (e: TouchEvent) => {
+  // 拖拽把手区域不触发长按菜单，避免与 SortableJS 拖拽排序冲突
+  if ((e.target as HTMLElement).closest(".drag-handle")) return;
   const touch = e.touches[0];
   startPoint = { x: touch.clientX, y: touch.clientY };
   longPressTriggered = false;
