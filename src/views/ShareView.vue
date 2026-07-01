@@ -22,6 +22,14 @@
       <!-- 占位：撑开与 custom-header 等高的空间 -->
       <div class="header-placeholder"></div>
 
+      <!-- 下拉刷新 -->
+      <ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
+        <ion-refresher-content
+          pulling-icon="lines"
+          refreshing-spinner="crescent"
+        />
+      </ion-refresher>
+
       <!-- 分享列表 -->
       <div class="share-list">
         <!-- 加载中：骨架屏 -->
@@ -96,6 +104,9 @@ import {
   IonContent,
   IonSearchbar,
   IonSkeletonText,
+  IonRefresher,
+  IonRefresherContent,
+  onIonViewWillEnter,
   alertController,
 } from "@ionic/vue";
 import { shareSocialOutline } from "ionicons/icons";
@@ -154,6 +165,18 @@ const loadShares = async () => {
 onMounted(() => {
   loadShares();
 });
+
+/** Tab 切换时自动刷新分享列表（解决创建分享后数据不更新的问题） */
+onIonViewWillEnter(() => {
+  loadShares();
+});
+
+/** 下拉刷新：重新加载分享列表 */
+const onRefresh = async (event: Event) => {
+  const target = event.target as HTMLIonRefresherElement;
+  await loadShares();
+  target.complete();
+};
 
 // ========== 长按手势 ==========
 // 500ms 长按后设置标记，touchend 时才弹出 actionSheet，

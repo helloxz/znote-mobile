@@ -23,6 +23,14 @@
       <!-- 占位：撑开与 custom-header 等高的空间 -->
       <div class="header-placeholder"></div>
 
+      <!-- 下拉刷新 -->
+      <ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
+        <ion-refresher-content
+          pulling-icon="lines"
+          refreshing-spinner="crescent"
+        />
+      </ion-refresher>
+
       <!-- 回收站列表 -->
       <div class="trash-list">
         <!-- 加载中：骨架屏 -->
@@ -96,6 +104,8 @@ import {
   IonIcon,
   IonContent,
   IonSkeletonText,
+  IonRefresher,
+  IonRefresherContent,
   alertController,
 } from "@ionic/vue";
 import { trashOutline, timeOutline } from "ionicons/icons";
@@ -154,6 +164,13 @@ onMounted(() => {
     noteStore.loadNotebookTree();
   }
 });
+
+/** 下拉刷新：重新加载回收站列表 */
+const onRefresh = async (event: Event) => {
+  const target = event.target as HTMLIonRefresherElement;
+  await loadTrashNotes();
+  target.complete();
+};
 
 // ========== 长按手势 ==========
 // 500ms 长按后设置标记，touchend 时才弹出 actionSheet，
