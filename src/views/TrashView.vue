@@ -94,6 +94,7 @@ import { useI18n } from "vue-i18n";
 import {
   IonPage,
   IonIcon,
+  IonContent,
   IonSkeletonText,
   alertController,
 } from "@ionic/vue";
