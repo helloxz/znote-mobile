@@ -7,6 +7,9 @@ const config: CapacitorConfig = {
   server: {
     cleartext: true   // 允许 HTTP 通信（Android 默认禁止明文流量）
   },
+  android: {
+    icon: "resources/icon.png"   // 自定义启动图标（1024x1024 PNG）
+  },
   plugins: {
     CapacitorHttp: {
       enabled: true   // 将 fetch/XHR 路由到原生 HTTP，绕过 WebView 混合内容限制
