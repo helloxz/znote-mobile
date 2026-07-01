@@ -5,7 +5,8 @@ export default {
     // Bottom tab labels
     "tabs.notes": "Notes",
     "tabs.shares": "My Shares",
-    "tabs.trash": "Trash",
+	    "tabs.trash": "Trash",
+	    "tabs.about": "About",
 
     // Placeholder text
     "placeholder.me": "Profile coming soon",
@@ -172,5 +173,16 @@ export default {
     "trash.permanent_delete": "Delete Permanently",
     "trash.permanent_delete.confirm": "Permanently delete this note? This cannot be undone",
     "trash.permanent_delete.success": "Permanently deleted",
-    "trash.move": "Move Note",
-};
+	    "trash.move": "Move Note",
+
+	    // ========== About ==========
+	    "about.title": "About",
+	    "about.feedback": "Feedback",
+	    "about.community": "Community",
+	    "about.checkUpdate": "Check for Updates",
+		    "about.source": "Source Code",
+		    "about.updateToast": "You're up to date",
+		    "about.update.checking": "Checking for updates...",
+		    "about.update.newVersion": "New version v{version}",
+		    "about.update.goDownload": "Download",
+		};

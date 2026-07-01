@@ -23,6 +23,10 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'trash',
         component: () => import('@/views/TrashView.vue')
+      },
+      {
+        path: 'about',
+        component: () => import('@/views/AboutPage.vue')
       }
     ]
   },

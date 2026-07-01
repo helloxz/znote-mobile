@@ -5,7 +5,8 @@ export default {
     // 底部 Tab 标签
     "tabs.notes": "笔记",
     "tabs.shares": "我的分享",
-    "tabs.trash": "回收站",
+	    "tabs.trash": "回收站",
+	    "tabs.about": "关于",
 
     // 占位提示文案
     "placeholder.me": "个人中心开发中",
@@ -173,5 +174,16 @@ export default {
     "trash.permanent_delete": "彻底删除",
     "trash.permanent_delete.confirm": "确定彻底删除该笔记吗？此操作不可恢复",
     "trash.permanent_delete.success": "已彻底删除",
-    "trash.move": "移动笔记",
-};
+	    "trash.move": "移动笔记",
+
+	    // ========== 关于 ==========
+	    "about.title": "关于",
+	    "about.feedback": "问题反馈",
+	    "about.community": "交流群",
+	    "about.checkUpdate": "检测更新",
+		    "about.source": "开源地址",
+		    "about.updateToast": "已是最新版本",
+		    "about.update.checking": "正在检查更新...",
+		    "about.update.newVersion": "发现新版本 v{version}",
+		    "about.update.goDownload": "前往下载",
+		};
