@@ -100,6 +100,7 @@ const uploadImages = async (
 /* 隐藏左侧不需要的按钮：3=斜体 / 7=行内代码 / 13=分割线 */
 .bytemd-toolbar-left > .bytemd-toolbar-icon:nth-child(3) { display: none; }
 .bytemd-toolbar-left > .bytemd-toolbar-icon:nth-child(7) { display: none; }
+.bytemd-toolbar-left > .bytemd-toolbar-icon:nth-child(8) { display: none; }
 .bytemd-toolbar-left > .bytemd-toolbar-icon:nth-child(13) { display: none; }
 
 /* 工具栏横向滚动（窄屏不裁剪按钮） */
