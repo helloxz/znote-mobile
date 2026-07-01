@@ -92,8 +92,8 @@
 
     <!-- 悬浮新建笔记按钮 -->
     <button
+      v-if="noteStore.activeCategoryId && keyword.trim().length === 0 && !noteStore.searchMode"
       class="fab-create"
-      :class="{ 'fab-disabled': !noteStore.activeCategoryId || noteStore.searchMode }"
       @click="onCreateNote"
     >
       <ion-icon :icon="addOutline" />
@@ -707,9 +707,4 @@ const showToast = async (message: string, color: string = "danger") => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-/* 禁用状态 */
-.fab-create.fab-disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}
 </style>
