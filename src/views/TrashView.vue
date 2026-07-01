@@ -19,7 +19,6 @@
       :fullscreen="true"
       id="trash-content"
       class="trash-content"
-      ref="contentRef"
     >
       <!-- 占位：撑开与 custom-header 等高的空间 -->
       <div class="header-placeholder"></div>
@@ -76,6 +75,16 @@
       @cancel="onMoveNoteCancel"
       @update:show="showMoveNoteModal = $event"
     />
+
+    <!-- 底部操作面板（回收站长按菜单） -->
+    <ActionSheet
+      :show="actionSheet.show.value"
+      :header="actionSheet.options.value.header"
+      :buttons="actionSheet.options.value.buttons"
+      :cancel-text="actionSheet.options.value.cancelText"
+      @update:show="actionSheet.onClose"
+      @select="actionSheet.onSelect"
+    />
   </ion-page>
 </template>
 
@@ -85,24 +94,23 @@ import { useI18n } from "vue-i18n";
 import {
   IonPage,
   IonIcon,
-  IonContent,
   IonSkeletonText,
-  actionSheetController,
   alertController,
-  toastController,
 } from "@ionic/vue";
 import { trashOutline, timeOutline } from "ionicons/icons";
 import { fetchTrashNotes, emptyTrash, permanentDeleteNote, updateNote } from "@/api/notebook";
 import { useNoteStore } from "@/stores/note";
 import MoveCategoryModal from "@/components/note/MoveCategoryModal.vue";
+import ActionSheet from "@/components/note/ActionSheet.vue";
+import { useActionSheet } from "@/composables/useActionSheet";
+import { useToast } from "@/composables/useToast";
 import type { Note } from "@/types/note";
 
 const noteStore = useNoteStore();
+const actionSheet = useActionSheet();
+const { showToast } = useToast();
 
 const { t } = useI18n();
-
-// ion-content 实例引用（用于 dismiss overlay 后恢复滚动）
-const contentRef = ref<InstanceType<typeof IonContent> | null>(null);
 
 // 回收站数据
 const trashNotes = ref<Note[]>([]);
@@ -202,46 +210,9 @@ const onContextMenu = (_e: Event, note: Note) => {
   showActionSheet(note);
 };
 
-/**
- * 强制清理 overlay dismiss 后可能残留的滚动锁。
- * 参考 ShareView.vue 的 restoreScroll 实现
- */
-const restoreScroll = () => {
-  requestAnimationFrame(() => {
-    document.body.classList.remove("backdrop-no-scroll");
-    document.body.style.removeProperty("overflow");
-
-    const appRoot = document.querySelector("ion-app") || document.body;
-    const viewContainer = appRoot.querySelector(
-      "ion-router-outlet, #ion-view-container-root"
-    );
-    if (viewContainer) {
-      viewContainer.removeAttribute("aria-hidden");
-      viewContainer.removeAttribute("inert");
-    }
-
-    const ionContentEl = contentRef.value?.$el as
-      | (HTMLElement & { getScrollElement?: () => Promise<HTMLElement> })
-      | undefined;
-    void ionContentEl?.getScrollElement?.().then((scrollEl) => {
-      scrollEl.style.removeProperty("overflow");
-      scrollEl.style.removeProperty("overflow-y");
-      scrollEl.style.removeProperty("touch-action");
-      scrollEl.style.removeProperty("pointer-events");
-    });
-  });
-
-  setTimeout(() => {
-    document.body.classList.remove("backdrop-no-scroll");
-    document.body.style.removeProperty("overflow");
-  }, 100);
-};
-
-// ========== 长按弹出 Action Sheet ==========
-
 /** 弹出底部操作菜单：移动笔记 / 彻底删除 */
 const showActionSheet = async (note: Note) => {
-  const actionSheet = await actionSheetController.create({
+  const role = await actionSheet.showActionSheet({
     header: note.title || t("note.untitled"),
     buttons: [
       {
@@ -251,19 +222,10 @@ const showActionSheet = async (note: Note) => {
       {
         text: t("trash.permanent_delete"),
         role: "delete",
-        cssClass: "danger",
-      },
-      {
-        text: t("note.list.cancel"),
-        role: "cancel",
+        danger: true,
       },
     ],
   });
-  await actionSheet.present();
-  const { role } = await actionSheet.onDidDismiss();
-
-  // overlay dismiss 后主动恢复滚动
-  restoreScroll();
 
   if (role === "move") {
     await handleMoveNote();
@@ -300,8 +262,6 @@ const handlePermanentDelete = async (note: Note) => {
   await alert.present();
   const { role } = await alert.onDidDismiss();
 
-  restoreScroll();
-
   if (role === "confirm") {
     const res = await permanentDeleteNote(note.id);
     const body = res.data as { code: number; msg: string };
@@ -337,8 +297,6 @@ const handleEmptyTrash = async () => {
   });
   await alert.present();
   const { role } = await alert.onDidDismiss();
-
-  restoreScroll();
 
   if (role !== "confirm") return;
 
@@ -380,16 +338,6 @@ const onMoveNoteCancel = () => {
   showMoveNoteModal.value = false;
 };
 
-/** Toast 提示 */
-const showToast = async (message: string, color: string = "danger") => {
-  const toast = await toastController.create({
-    message,
-    duration: 2000,
-    color,
-    position: "top",
-  });
-  await toast.present();
-};
 </script>
 
 <style scoped>

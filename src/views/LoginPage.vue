@@ -81,9 +81,9 @@ import {
   IonButton,
   IonIcon,
   IonSpinner,
-  toastController,
 } from "@ionic/vue";
 import { eyeOutline, eyeOffOutline } from "ionicons/icons";
+import { useToast } from "@/composables/useToast";
 import { useUserStore } from "@/stores/user";
 
 const router = useRouter();
@@ -134,16 +134,7 @@ const onSubmit = async () => {
   }
 };
 
-/** 弹出 toast 提示 */
-const showToast = async (message: string, color: string = "danger") => {
-  const toast = await toastController.create({
-    message,
-    duration: 2000,
-    color,
-    position: "top",
-  });
-  await toast.present();
-};
+const { showToast } = useToast();
 </script>
 
 <style scoped>

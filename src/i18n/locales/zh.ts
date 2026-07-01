@@ -38,6 +38,10 @@ export default {
     // 设置菜单项
     "note.menu.changePassword": "修改密码",
     "note.menu.logout": "退出登录",
+    // 设置面板（底部滑出）
+    "note.settings.cancel": "取消",
+    "note.settings.logoutConfirm": "确定退出登录吗？",
+    "note.settings.logoutConfirmOk": "退出",
     // 修改密码页
     "note.password.title": "修改密码",
     "note.password.old": "旧密码",

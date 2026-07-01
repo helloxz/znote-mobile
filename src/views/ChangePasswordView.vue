@@ -103,7 +103,6 @@ import {
   IonInput,
   IonButton,
   IonSpinner,
-  toastController,
 } from "@ionic/vue";
 import {
   chevronBack,
@@ -111,6 +110,7 @@ import {
   eyeOffOutline,
   checkmarkCircle,
 } from "ionicons/icons";
+import { useToast } from "@/composables/useToast";
 import { changePassword } from "@/api/user";
 import { useUserStore } from "@/stores/user";
 
@@ -219,16 +219,7 @@ const clearTimer = () => {
 // 组件卸载时清理定时器
 onUnmounted(clearTimer);
 
-/** Toast 提示 */
-const showToast = async (message: string, color: string = "danger") => {
-  const toast = await toastController.create({
-    message,
-    duration: 2000,
-    color,
-    position: "top",
-  });
-  await toast.present();
-};
+const { showToast } = useToast();
 </script>
 
 <style scoped>

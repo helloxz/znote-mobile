@@ -68,7 +68,6 @@ import {
   IonIcon,
   IonContent,
   alertController,
-  toastController,
 } from "@ionic/vue";
 import {
   chatbubbleEllipsesOutline,
@@ -77,6 +76,7 @@ import {
   codeSlashOutline,
   chevronForwardOutline,
 } from "ionicons/icons";
+import { useToast } from "@/composables/useToast";
 import axios from "axios";
 import pkg from "../../package.json";
 
@@ -90,16 +90,7 @@ const FEEDBACK_URL = "https://github.com/helloxz/znote-mobile/issues";
 const COMMUNITY_URL = "https://znote.xphub.dev/doc/guide/note-325";
 const SOURCE_REPO_URL = "https://github.com/helloxz/znote";
 
-/** 弹出 toast 提示 */
-const showToast = async (message: string, color: string = "danger") => {
-  const toast = await toastController.create({
-    message,
-    duration: 2000,
-    color,
-    position: "top",
-  });
-  await toast.present();
-};
+const { showToast } = useToast();
 
 /** 打开问题反馈（系统浏览器） */
 const openFeedback = () => {
@@ -143,12 +134,7 @@ const compareVersion = (a: string, b: string): number => {
  * - 远程更新 → alert 弹窗，用户确认后浏览器打开下载页
  */
 const checkUpdate = async () => {
-  const loadingToast = await toastController.create({
-    message: t("about.update.checking"),
-    duration: 0, // 持续显示
-    position: "top",
-  });
-  await loadingToast.present();
+  showToast(t("about.update.checking"));
 
   try {
     const { data } = await axios.get(UPDATE_JSON_URL, { timeout: 10000 });
@@ -157,7 +143,6 @@ const checkUpdate = async () => {
 
     // 版本比较
     const cmp = compareVersion(version, remoteVersion);
-    await loadingToast.dismiss();
 
     if (cmp >= 0) {
       // 本地版本 >= 远程版本：已是最新
@@ -179,8 +164,7 @@ const checkUpdate = async () => {
       await alert.present();
     }
   } catch {
-    await loadingToast.dismiss();
-    await showToast(t("network.error"));
+    showToast(t("network.error"));
   }
 };
 </script>

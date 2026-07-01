@@ -42,6 +42,16 @@
       @cancel="onMoveCancel"
       @update:show="showMoveModal = $event"
     />
+
+    <!-- 底部操作面板（分类长按菜单） -->
+    <ActionSheet
+      :show="actionSheet.show.value"
+      :header="actionSheet.options.value.header"
+      :buttons="actionSheet.options.value.buttons"
+      :cancel-text="actionSheet.options.value.cancelText"
+      @update:show="actionSheet.onClose"
+      @select="actionSheet.onSelect"
+    />
   </div>
 </template>
 
@@ -50,9 +60,7 @@ import { ref, provide, watch, computed } from "vue";
 import {
   IonIcon,
   popoverController,
-  actionSheetController,
   alertController,
-  toastController,
 } from "@ionic/vue";
 import { bookOutline, chevronDown } from "ionicons/icons";
 import { useI18n } from "vue-i18n";
@@ -61,9 +69,13 @@ import type { NotebookNode } from "@/types/note";
 import CategoryTreeNode from "@/components/note/CategoryTreeNode.vue";
 import NotebookSwitcher from "@/components/note/NotebookSwitcher.vue";
 import MoveCategoryModal from "@/components/note/MoveCategoryModal.vue";
+import ActionSheet from "@/components/note/ActionSheet.vue";
+import { useActionSheet } from "@/composables/useActionSheet";
+import { useToast } from "@/composables/useToast";
 
 const { t } = useI18n();
 const noteStore = useNoteStore();
+const actionSheet = useActionSheet();
 
 // 展开状态：节点 id 集合（组件本地管理，切换笔记本时重置）
 const expandedIds = ref<Set<number>>(new Set());
@@ -174,9 +186,9 @@ const collectDescendantIds = (
   return ids;
 };
 
-/** 长按分类触发：弹出底部 Action Sheet */
+/** 长按分类触发：弹出底部操作面板 */
 const onContextMenu = async (node: NotebookNode) => {
-  const actionSheet = await actionSheetController.create({
+  const role = await actionSheet.showActionSheet({
     header: node.title,
     buttons: [
       {
@@ -191,14 +203,8 @@ const onContextMenu = async (node: NotebookNode) => {
         text: t("note.category.deleteText"),
         role: "delete",
       },
-      {
-        text: t("note.category.cancel"),
-        role: "cancel",
-      },
     ],
   });
-  await actionSheet.present();
-  const { role } = await actionSheet.onDidDismiss();
   if (role === "rename") {
     await showRenameAlert(node);
   } else if (role === "move") {
@@ -294,16 +300,7 @@ const onMoveCancel = () => {
   showMoveModal.value = false;
 };
 
-/** Toast 提示 */
-const showToast = async (message: string, color: string = "danger") => {
-  const toast = await toastController.create({
-    message,
-    duration: 2000,
-    color,
-    position: "top",
-  });
-  await toast.present();
-};
+const { showToast } = useToast();
 </script>
 
 <style scoped>

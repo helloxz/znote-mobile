@@ -7,11 +7,14 @@
  * 图片上传：走后端 /api/user/file/upload
  */
 import { ref, watch } from "vue";
-import { IonTextarea, IonIcon, toastController } from "@ionic/vue";
+import { IonTextarea, IonIcon } from "@ionic/vue";
 import { linkOutline, imageOutline } from "ionicons/icons";
 import req from "@/utils/req";
 import { getServerUrl } from "@/services/storage";
 import type { ApiResponse } from "@/api/user";
+import { useToast } from "@/composables/useToast";
+
+const { showToast } = useToast();
 
 const props = defineProps<{
     modelValue: string;
@@ -118,13 +121,7 @@ const doImage = async () => {
                 ta.setSelectionRange(newPos, newPos);
             }
         } catch {
-            const toast = await toastController.create({
-                message: "图片上传失败",
-                duration: 2000,
-                color: "danger",
-                position: "top",
-            });
-            await toast.present();
+            showToast("图片上传失败");
         }
     };
     input.click();

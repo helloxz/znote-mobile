@@ -165,6 +165,47 @@ async function setJson(key: string, val: unknown): Promise<void> {
 
 ---
 
-## 八、一句话总结
+## 九、全局可复用组件 & Composable
 
-移动端选型 = **web 端技术栈（axios + Pinia）+ 把 `localStorage/sessionStorage` 统一换成 `@capacitor/preferences`**，并处理好「异步存储 vs 同步拦截器」这一个坑。不引入 `@ionic/storage`。
+以下组件/Composable 为全局通用，**新增同类交互时直接复用，不要重复造轮子**。
+
+### 组件清单
+
+| 组件 | 路径 | 用途 |
+|------|------|------|
+| `SettingsSheet` | `src/components/note/SettingsSheet.vue` | 底部滑出设置面板（用户信息 + 修改密码 + 退出登录），Props: `show` |
+| `ActionSheet` | `src/components/note/ActionSheet.vue` | 底部操作面板（标题 + 操作按钮 + 取消），Props: `show`, `header?`, `buttons: {text, role, danger?}[]` |
+| `ToastContainer` | `src/components/ToastContainer.vue` | 全局 Toast 容器，已挂载在 `App.vue`，无需手动引用 |
+| `MoveCategoryModal` | `src/components/note/MoveCategoryModal.vue` | 移动分类/笔记弹窗，自定义 header（左取消 + 中标题 + 右确定），Props: `show`, `type?`, `sourceId`, `sourceName`, `categoryTree`, `excludeNodeIds?`, `currentCategoryId?` |
+
+### Composable 清单
+
+| Composable | 路径 | 用途 |
+|------|------|------|
+| `useActionSheet` | `src/composables/useActionSheet.ts` | `showActionSheet({header?, buttons, cancelText?})` → `Promise<role\|undefined>`，自动处理 restoreScroll |
+| `useToast` | `src/composables/useToast.ts` | `showToast(message, color?)`，全局共享状态，`App.vue` 已挂载 `ToastContainer` |
+
+### 使用示例
+
+```ts
+// 底部操作面板
+const { showActionSheet } = useActionSheet();
+const role = await showActionSheet({
+  header: "笔记标题",
+  buttons: [
+    { text: "置顶", role: "pin" },
+    { text: "删除", role: "delete", danger: true },
+  ],
+});
+
+// Toast 提示
+const { showToast } = useToast();
+showToast("操作成功", "success");
+showToast("操作失败"); // 默认 danger
+```
+
+### 设计规范
+
+- **底部面板**（SettingsSheet / ActionSheet / MoveCategoryModal）：统一使用自定义 header，与 Ionic 默认 toolbar 风格一致（`--z-bg-page` 背景 + `--z-text-*` 文字）
+- **Toast**：胶囊形卡片 + `--z-success`/`--z-danger` 背景色，顶部居中，2 秒自动消失
+- **样式变量**：全部使用 `--z-*` 设计令牌（定义在 `src/theme/variables.css`），禁止硬编码颜色值

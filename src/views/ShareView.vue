@@ -18,7 +18,6 @@
       :fullscreen="true"
       id="share-content"
       class="share-content"
-      ref="contentRef"
     >
       <!-- 占位：撑开与 custom-header 等高的空间 -->
       <div class="header-placeholder"></div>
@@ -75,6 +74,16 @@
         </div>
       </div>
     </ion-content>
+
+    <!-- 底部操作面板（分享长按菜单） -->
+    <ActionSheet
+      :show="actionSheet.show.value"
+      :header="actionSheet.options.value.header"
+      :buttons="actionSheet.options.value.buttons"
+      :cancel-text="actionSheet.options.value.cancelText"
+      @update:show="actionSheet.onClose"
+      @select="actionSheet.onSelect"
+    />
   </ion-page>
 </template>
 
@@ -84,22 +93,20 @@ import { useI18n } from "vue-i18n";
 import {
   IonPage,
   IonIcon,
-  IonContent,
   IonSearchbar,
   IonSkeletonText,
-  actionSheetController,
   alertController,
-  toastController,
 } from "@ionic/vue";
 import { shareSocialOutline } from "ionicons/icons";
 import { getServerUrl } from "@/services/storage";
 import { fetchMyShares, deleteShare } from "@/api/share";
 import type { ShareItem } from "@/types/note";
+import ActionSheet from "@/components/note/ActionSheet.vue";
+import { useActionSheet } from "@/composables/useActionSheet";
+import { useToast } from "@/composables/useToast";
 
 const { t } = useI18n();
-
-// ion-content 实例引用（用于 dismiss overlay 后恢复滚动）
-const contentRef = ref<InstanceType<typeof IonContent> | null>(null);
+const actionSheet = useActionSheet();
 
 // 分享列表数据
 const shares = ref<ShareItem[]>([]);
@@ -203,46 +210,9 @@ const onContextMenu = (_e: Event, share: ShareItem) => {
   showActionSheet(share);
 };
 
-/**
- * 强制清理 overlay dismiss 后可能残留的滚动锁。
- * 参考 NoteView.vue 的 restoreScroll 实现
- */
-const restoreScroll = () => {
-  requestAnimationFrame(() => {
-    document.body.classList.remove("backdrop-no-scroll");
-    document.body.style.removeProperty("overflow");
-
-    const appRoot = document.querySelector("ion-app") || document.body;
-    const viewContainer = appRoot.querySelector(
-      "ion-router-outlet, #ion-view-container-root"
-    );
-    if (viewContainer) {
-      viewContainer.removeAttribute("aria-hidden");
-      viewContainer.removeAttribute("inert");
-    }
-
-    const ionContentEl = contentRef.value?.$el as
-      | (HTMLElement & { getScrollElement?: () => Promise<HTMLElement> })
-      | undefined;
-    void ionContentEl?.getScrollElement?.().then((scrollEl) => {
-      scrollEl.style.removeProperty("overflow");
-      scrollEl.style.removeProperty("overflow-y");
-      scrollEl.style.removeProperty("touch-action");
-      scrollEl.style.removeProperty("pointer-events");
-    });
-  });
-
-  setTimeout(() => {
-    document.body.classList.remove("backdrop-no-scroll");
-    document.body.style.removeProperty("overflow");
-  }, 100);
-};
-
-// ========== 长按弹出 Action Sheet ==========
-
 /** 弹出底部操作菜单：复制分享链接 / 删除分享 */
 const showActionSheet = async (share: ShareItem) => {
-  const actionSheet = await actionSheetController.create({
+  const role = await actionSheet.showActionSheet({
     header: share.note_title,
     buttons: [
       {
@@ -253,17 +223,8 @@ const showActionSheet = async (share: ShareItem) => {
         text: t("shares.delete"),
         role: "delete",
       },
-      {
-        text: t("note.list.cancel"),
-        role: "cancel",
-      },
     ],
   });
-  await actionSheet.present();
-  const { role } = await actionSheet.onDidDismiss();
-
-  // overlay dismiss 后主动恢复滚动
-  restoreScroll();
 
   if (role === "copy") {
     await handleCopyLink(share);
@@ -309,8 +270,6 @@ const handleDelete = async (share: ShareItem) => {
   await alert.present();
   const { role } = await alert.onDidDismiss();
 
-  restoreScroll();
-
   if (role === "confirm") {
     const ok = await deleteShare(share.id);
     if (ok) {
@@ -321,16 +280,7 @@ const handleDelete = async (share: ShareItem) => {
   }
 };
 
-/** Toast 提示 */
-const showToast = async (message: string, color: string = "danger") => {
-  const toast = await toastController.create({
-    message,
-    duration: 2000,
-    color,
-    position: "top",
-  });
-  await toast.present();
-};
+const { showToast } = useToast();
 </script>
 
 <style scoped>

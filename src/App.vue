@@ -1,11 +1,13 @@
 <template>
   <ion-app>
     <ion-router-outlet />
+    <ToastContainer />
   </ion-app>
 </template>
 
 <script setup lang="ts">
 import { IonApp, IonRouterOutlet } from '@ionic/vue';
+import ToastContainer from '@/components/ToastContainer.vue';
 import { onMounted } from 'vue';
 import { StatusBar, Style } from '@capacitor/status-bar';
 

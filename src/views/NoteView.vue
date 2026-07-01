@@ -34,7 +34,6 @@
       :fullscreen="true"
       id="note-content"
       class="note-content"
-      ref="contentRef"
     >
       <!-- 占位：撑开与 custom-header 等高的空间，避免内容被 fixed header 遮挡 -->
       <div class="header-placeholder"></div>
@@ -120,6 +119,24 @@
       @cancel="showCreateShareModal = false"
       @update:show="showCreateShareModal = $event"
     />
+
+    <!-- 底部滑出设置面板 -->
+    <SettingsSheet
+      :show="showSettings"
+      @update:show="showSettings = $event"
+      @change-password="router.push('/change-password')"
+      @logout="onLogout"
+    />
+
+    <!-- 底部操作面板（笔记长按菜单） -->
+    <ActionSheet
+      :show="actionSheet.show.value"
+      :header="actionSheet.options.value.header"
+      :buttons="actionSheet.options.value.buttons"
+      :cancel-text="actionSheet.options.value.cancelText"
+      @update:show="actionSheet.onClose"
+      @select="actionSheet.onSelect"
+    />
   </ion-page>
 </template>
 
@@ -130,16 +147,12 @@ import { useI18n } from "vue-i18n";
 import {
   IonPage,
   IonIcon,
-  IonContent,
   IonSearchbar,
   IonSkeletonText,
   IonMenu,
   IonRefresher,
   IonRefresherContent,
   menuController,
-  popoverController,
-  actionSheetController,
-  toastController,
 } from "@ionic/vue";
 import { VueDraggable } from "vue-draggable-plus";
 import {
@@ -152,71 +165,20 @@ import { useUserStore } from "@/stores/user";
 import { useNoteStore } from "@/stores/note";
 import type { Note } from "@/types/note";
 import SidebarMenu from "@/components/note/SidebarMenu.vue";
-import LogoutMenu from "@/components/LogoutMenu.vue";
+import SettingsSheet from "@/components/note/SettingsSheet.vue";
 import NoteListItem from "@/components/note/NoteListItem.vue";
+import ActionSheet from "@/components/note/ActionSheet.vue";
 import MoveCategoryModal from "@/components/note/MoveCategoryModal.vue";
 import CreateShareModal from "@/components/note/CreateShareModal.vue";
+import { useActionSheet } from "@/composables/useActionSheet";
+import { useToast } from "@/composables/useToast";
 
 const router = useRouter();
 const { t } = useI18n();
 const userStore = useUserStore();
 const noteStore = useNoteStore();
-
-// ion-content 实例引用（用于 dismiss overlay 后恢复滚动）
-const contentRef = ref<InstanceType<typeof IonContent> | null>(null);
-
-/**
- * 强制清理 overlay dismiss 后可能残留的滚动锁。
- *
- * 根因（@ionic/core 8.8 源码确认）：
- * actionSheet present 时给 document.body 加 class "backdrop-no-scroll"，
- * 对应 CSS `body.backdrop-no-scroll{overflow:hidden}`。dismiss 时只有当
- * "当前 overlay 是最后一个锁根 overlay"才 remove 该 class；长按手势在 touch
- * 序列中途弹 overlay 的场景容易触发条件不满足，导致 class 残留 → body 永远
- * overflow:hidden → 笔记列表无法滚动。
- *
- * 核心修复已在 NoteListItem.vue / CategoryTreeNode.vue 中完成（改为 touchend
- * 后再 present actionSheet），此函数作为安全兜底，确保 Ionic 内部 cleanup
- * 先执行后再清理残留。
- */
-const restoreScroll = () => {
-  // 延迟一帧，让 Ionic 内部 dismiss 流程先完成
-  requestAnimationFrame(() => {
-    // 1. body 上的 backdrop-no-scroll（最关键，actionSheet 的真正锁）
-    document.body.classList.remove("backdrop-no-scroll");
-    document.body.style.removeProperty("overflow");
-
-    // 2. view container 的 aria-hidden（present 时 setRootAriaHidden(true) 的残留）
-    const appRoot = document.querySelector("ion-app") || document.body;
-    const viewContainer = appRoot.querySelector(
-      "ion-router-outlet, #ion-view-container-root"
-    );
-    if (viewContainer) {
-      viewContainer.removeAttribute("aria-hidden");
-      viewContainer.removeAttribute("inert");
-    }
-
-    // 3. ion-content scrollEl 的 inline overflow（保险清理）
-    const ionContentEl = contentRef.value?.$el as
-      | (HTMLElement & { getScrollElement?: () => Promise<HTMLElement> })
-      | undefined;
-    void ionContentEl?.getScrollElement?.().then((scrollEl) => {
-      scrollEl.style.removeProperty("overflow");
-      scrollEl.style.removeProperty("overflow-y");
-      scrollEl.style.removeProperty("touch-action");
-      scrollEl.style.removeProperty("pointer-events");
-    });
-
-    // 触发重排，恢复 iOS 的滚动惯性
-    window.dispatchEvent(new Event("resize"));
-  });
-
-  // 二次兜底：100ms 后再清理一次，防止 Ionic 异步重新加锁
-  setTimeout(() => {
-    document.body.classList.remove("backdrop-no-scroll");
-    document.body.style.removeProperty("overflow");
-  }, 100);
-};
+const actionSheet = useActionSheet();
+const { showToast } = useToast();
 
 // 搜索关键字
 const keyword = ref("");
@@ -313,22 +275,12 @@ const onCategorySelected = () => {
   void menuController.close("note-menu");
 };
 
-/** 设置按钮 → Popover 菜单（修改密码 / 退出登录） */
-const showSettingMenu = async (ev: Event) => {
-  const popover = await popoverController.create({
-    component: LogoutMenu,
-    event: ev,
-    translucent: true,
-    showBackdrop: false,
-    alignment: "end",
-  });
-  await popover.present();
-  const { data } = await popover.onDidDismiss();
-  if (data?.action === "logout") {
-    await onLogout();
-  } else if (data?.action === "changePassword") {
-    router.push("/change-password");
-  }
+// 设置面板显隐
+const showSettings = ref(false);
+
+/** 设置按钮 → 打开底部滑出设置面板 */
+const showSettingMenu = () => {
+  showSettings.value = true;
 };
 
 /** 退出登录：调后端撤销 session + 清本地数据 + 跳登录页 */
@@ -414,10 +366,10 @@ const onCreateNote = async () => {
   }
 };
 
-/** 长按笔记：弹出 Action Sheet 菜单 */
+/** 长按笔记：弹出底部操作面板 */
 const onNoteContextMenu = async (note: Note) => {
   const isPinned = note.is_pinned === 1;
-  const actionSheet = await actionSheetController.create({
+  const role = await actionSheet.showActionSheet({
     header: note.title || t("note.untitled"),
     buttons: [
       {
@@ -436,17 +388,8 @@ const onNoteContextMenu = async (note: Note) => {
         text: t("note.list.trash"),
         role: "trash",
       },
-      {
-        text: t("note.list.cancel"),
-        role: "cancel",
-      },
     ],
   });
-  await actionSheet.present();
-  const { role } = await actionSheet.onDidDismiss();
-
-  // overlay dismiss 后主动恢复 ion-content 滚动（长按手势可能打断 touch 序列导致滚动卡住）
-  restoreScroll();
 
   if (role === "pin") {
     // 置顶/取消置顶：复用 updateNote 传 is_pinned
@@ -496,16 +439,6 @@ const onMoveNoteCancel = () => {
   showMoveNoteModal.value = false;
 };
 
-/** Toast 提示 */
-const showToast = async (message: string, color: string = "danger") => {
-  const toast = await toastController.create({
-    message,
-    duration: 2000,
-    color,
-    position: "top",
-  });
-  await toast.present();
-};
 </script>
 
 <style scoped>

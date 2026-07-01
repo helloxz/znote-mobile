@@ -121,17 +121,18 @@ const onToggle = () => {
   align-items: center;
   gap: 6px;
   padding: 10px 8px;
-  border-radius: 8px;
+  border-radius: var(--z-radius-md);
   cursor: pointer;
   transition: background-color 0.15s;
 }
 
 .node-row:active:not(.disabled) {
-  background: var(--ion-color-light);
+  background: var(--z-bg-subtle);
 }
 
+/* 选中态：浅橙底色 */
 .node-row.selected:not(.disabled) {
-  background: var(--ion-color-primary-tint);
+  background: var(--z-primary-bg);
 }
 
 /* 禁用状态：灰色半透明 */
@@ -147,7 +148,7 @@ const onToggle = () => {
 
 .expand-icon {
   font-size: 16px;
-  color: var(--ion-color-medium);
+  color: var(--z-text-tertiary);
   flex-shrink: 0;
   padding: 2px;
 }
@@ -159,27 +160,27 @@ const onToggle = () => {
 
 .node-icon {
   font-size: 18px;
-  color: var(--ion-color-primary);
+  color: var(--z-primary);
   flex-shrink: 0;
 }
 
 .node-title {
   flex: 1;
-  font-size: 15px;
-  color: var(--ion-color-dark);
+  font-size: var(--z-fs-body);
+  color: var(--z-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .current-badge {
-  font-size: 12px;
-  color: var(--ion-color-medium);
+  font-size: var(--z-fs-caption);
+  color: var(--z-text-tertiary);
 }
 
 .check-icon {
   font-size: 20px;
-  color: var(--ion-color-primary);
+  color: var(--z-primary);
   flex-shrink: 0;
 }
 

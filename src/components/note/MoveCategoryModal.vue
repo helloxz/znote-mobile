@@ -5,67 +5,57 @@
     :initial-breakpoint="0.7"
     @didDismiss="onCancel"
   >
-    <ion-header>
-      <ion-toolbar>
-        <ion-title>{{ dialogTitle }}</ion-title>
-        <ion-buttons slot="end">
-          <ion-button @click="onCancel">{{ t("note.category.cancel") }}</ion-button>
-        </ion-buttons>
-      </ion-toolbar>
-    </ion-header>
-
-    <ion-content class="ion-padding">
-      <!-- 源信息 -->
-      <div class="source-info">
-        <span class="source-label">{{ t("note.category.move.source") }}：</span>
-        <span class="source-name">{{ sourceName }}</span>
+    <div class="move-modal">
+      <!-- 自定义标题栏：左取消 + 中标题 + 右确认 -->
+      <div class="modal-header">
+        <button class="header-btn header-btn-cancel" @click="onCancel">
+          {{ t("note.settings.cancel") }}
+        </button>
+        <span class="header-title">{{ dialogTitle }}</span>
+        <button
+          class="header-btn header-btn-confirm"
+          :class="{ 'header-btn-disabled': selectedId === null }"
+          :disabled="selectedId === null"
+          @click="onConfirm"
+        >
+          {{ t("note.dialog.confirm") }}
+        </button>
       </div>
 
-      <!-- 目标选择提示 -->
-      <div class="select-hint">{{ t("note.category.move.selectTarget") }}</div>
+      <!-- 内容区 -->
+      <div class="modal-body">
+        <!-- 源信息 -->
+        <div class="source-info">
+          <span class="source-label">{{ t("note.category.move.source") }}：</span>
+          <span class="source-name">{{ sourceName }}</span>
+        </div>
 
-      <!-- 分类树列表 -->
-      <div class="category-list">
-        <CategoryNode
-          v-for="node in categoryTree"
-          :key="node.id"
-          :node="node"
-          :level="0"
-          :exclude-ids="excludeSet"
-          :current-id="currentCategoryId ?? -1"
-          :selected-id="selectedId"
-          :expanded-ids="expandedIds"
-          @select="onSelect"
-          @toggle="onToggle"
-        />
+        <!-- 目标选择提示 -->
+        <div class="select-hint">{{ t("note.category.move.selectTarget") }}</div>
+
+        <!-- 分类树列表 -->
+        <div class="category-list">
+          <CategoryNode
+            v-for="node in categoryTree"
+            :key="node.id"
+            :node="node"
+            :level="0"
+            :exclude-ids="excludeSet"
+            :current-id="currentCategoryId ?? -1"
+            :selected-id="selectedId"
+            :expanded-ids="expandedIds"
+            @select="onSelect"
+            @toggle="onToggle"
+          />
+        </div>
       </div>
-    </ion-content>
-
-    <!-- 底部确认按钮 -->
-    <ion-footer class="modal-footer">
-      <ion-button
-        expand="block"
-        :disabled="selectedId === null"
-        @click="onConfirm"
-      >
-        {{ t("note.category.move.toHere") }}
-      </ion-button>
-    </ion-footer>
+    </div>
   </IonModal>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
-import {
-  IonModal,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
-  IonButton,
-  IonContent,
-  IonFooter,
-} from "@ionic/vue";
+import { IonModal } from "@ionic/vue";
 import { useI18n } from "vue-i18n";
 import type { NotebookNode } from "@/types/note";
 import CategoryNode from "./CategoryNode.vue";
@@ -159,36 +149,102 @@ const onCancel = () => {
 </script>
 
 <style scoped>
+.move-modal {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--z-bg-page);
+}
+
+/* ========== 自定义标题栏 ========== */
+.modal-header {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 var(--z-space-xs);
+  background: var(--z-bg-page);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--z-border-light);
+}
+
+.header-btn {
+  flex-shrink: 0;
+  min-width: 48px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0 var(--z-space-sm);
+  font-size: var(--z-fs-body);
+  cursor: pointer;
+  border-radius: var(--z-radius-sm);
+}
+
+.header-btn-cancel {
+  color: var(--z-text-secondary);
+}
+
+.header-btn-confirm {
+  color: var(--z-primary);
+  font-weight: 600;
+}
+
+.header-btn-disabled {
+  color: var(--z-text-disabled);
+  cursor: not-allowed;
+}
+
+.header-title {
+  flex: 1;
+  text-align: center;
+  font-size: var(--z-fs-body-lg);
+  font-weight: 600;
+  color: var(--z-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ========== 内容区 ========== */
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--z-space-lg);
+  -webkit-overflow-scrolling: touch;
+}
+
 .source-info {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: var(--z-space-sm);
+  font-size: var(--z-fs-body);
 }
 
 .source-label {
-  color: var(--ion-color-medium);
+  color: var(--z-text-tertiary);
 }
 
 .source-name {
   font-weight: 600;
-  color: var(--ion-color-dark);
+  color: var(--z-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .select-hint {
-  font-size: 12px;
-  color: var(--ion-color-medium);
-  margin-bottom: 12px;
+  font-size: var(--z-fs-caption);
+  color: var(--z-text-tertiary);
+  margin-bottom: var(--z-space-md);
+  padding-bottom: var(--z-space-md);
+  border-bottom: 1px solid var(--z-border-light);
 }
 
 .category-list {
   display: flex;
   flex-direction: column;
-}
-
-/* 底部按钮 */
-.modal-footer {
-  padding: 8px 16px 16px;
 }
 </style>

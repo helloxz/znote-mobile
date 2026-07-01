@@ -120,7 +120,6 @@ import {
   IonIcon,
   IonContent,
   IonSpinner,
-  toastController,
 } from "@ionic/vue";
 import {
   chevronBack,
@@ -137,6 +136,7 @@ import type { Note } from "@/types/note";
 import type { ApiResponse } from "@/api/user";
 import MarkdownViewer from "@/components/note/MarkdownViewer.vue";
 import MarkdownEditor from "@/components/note/MarkdownEditor.vue";
+import { useToast } from "@/composables/useToast";
 
 const route = useRoute();
 const router = useRouter();
@@ -241,10 +241,7 @@ const saveNote = async (): Promise<boolean> => {
   }
 };
 
-const showToast = async (message: string, color: string = "danger") => {
-  const toast = await toastController.create({ message, duration: 2000, color, position: "top" });
-  await toast.present();
-};
+const { showToast } = useToast();
 
 /** 监听键盘弹出：通过 visualViewport 动态设置 --kb-height CSS 变量 */
 let kbCleanup: (() => void) | null = null;

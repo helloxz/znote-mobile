@@ -38,6 +38,10 @@ export default {
     // Settings menu
     "note.menu.changePassword": "Change Password",
     "note.menu.logout": "Log Out",
+    // Settings sheet (bottom slide-up)
+    "note.settings.cancel": "Cancel",
+    "note.settings.logoutConfirm": "Are you sure you want to log out?",
+    "note.settings.logoutConfirmOk": "Log Out",
     // Change password page
     "note.password.title": "Change Password",
     "note.password.old": "Old Password",

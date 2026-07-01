@@ -110,8 +110,8 @@ import {
   IonFooter,
   IonIcon,
   IonInput,
-  toastController,
 } from "@ionic/vue";
+import { useToast } from "@/composables/useToast";
 import { checkmarkCircleOutline, copyOutline } from "ionicons/icons";
 import { useI18n } from "vue-i18n";
 import { createShare } from "@/api/share";
@@ -214,16 +214,7 @@ const onCancel = () => {
   emit("cancel");
 };
 
-/** Toast 提示 */
-const showToast = async (message: string, color: string = "danger") => {
-  const toast = await toastController.create({
-    message,
-    duration: 2000,
-    color,
-    position: "top",
-  });
-  await toast.present();
-};
+const { showToast } = useToast();
 </script>
 
 <style scoped>
