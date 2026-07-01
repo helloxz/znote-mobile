@@ -464,7 +464,7 @@ const onMoveNoteCancel = () => {
   right: 0;
   z-index: 10;
   background: var(--z-bg-page);
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--z-safe-area-top);
 }
 
 /* 标题行 */
@@ -519,7 +519,7 @@ const onMoveNoteCancel = () => {
 /* 占位：撑开与 custom-header 等高的空间，避免内容被 fixed header 遮挡 */
 .header-placeholder {
   /* 标题行 48px + 搜索框区约 56px + 安全区顶部 */
-  height: calc(48px + 56px + env(safe-area-inset-top));
+  height: calc(48px + 56px + var(--z-safe-area-top));
 }
 
 /* 笔记列表 */

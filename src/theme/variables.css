@@ -128,4 +128,8 @@
   --z-space-lg: 16px;
   --z-space-xl: 24px;
   --z-space-xxl: 32px;
+
+  /* 顶部安全区：优先使用系统 env，Android/MIUI 异常时由 App.vue 写入原生状态栏高度兜底 */
+  --z-status-bar-height: 0px;
+  --z-safe-area-top: max(env(safe-area-inset-top), var(--z-status-bar-height));
 }

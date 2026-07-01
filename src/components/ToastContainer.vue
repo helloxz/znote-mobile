@@ -24,7 +24,7 @@ const { toasts } = useToast();
 <style scoped>
 .toast-container {
   position: fixed;
-  top: calc(env(safe-area-inset-top) + 12px);
+  top: calc(var(--z-safe-area-top) + 12px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 2000;

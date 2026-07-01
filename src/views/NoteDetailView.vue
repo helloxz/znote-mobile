@@ -331,7 +331,7 @@ onUnmounted(() => {
   z-index: 20;
   background: var(--z-bg-page);
   border-bottom: 1px solid var(--z-border);
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--z-safe-area-top);
 }
 
 .title-row {
@@ -385,7 +385,7 @@ onUnmounted(() => {
 }
 
 .header-placeholder {
-  height: calc(48px + env(safe-area-inset-top));
+  height: calc(48px + var(--z-safe-area-top));
 }
 
 /* ========== 加载/错误占位 ========== */
@@ -451,7 +451,7 @@ onUnmounted(() => {
 /* 编辑页容器：占满 header 下方全部空间，flex 纵向排列 */
 .edit-page {
   position: fixed;
-  top: calc(48px + env(safe-area-inset-top));
+  top: calc(48px + var(--z-safe-area-top));
   left: 0;
   right: 0;
   bottom: var(--kb-height, 0px);

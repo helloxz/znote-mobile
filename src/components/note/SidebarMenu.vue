@@ -309,7 +309,7 @@ const { showToast } = useToast();
   display: flex;
   flex-direction: column;
   background: var(--z-bg-page);
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--z-safe-area-top);
 }
 
 .section {

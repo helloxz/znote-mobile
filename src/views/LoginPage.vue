@@ -157,7 +157,7 @@ const { showToast } = useToast();
 /* 品牌区 */
 .brand {
   text-align: center;
-  padding: 64px 0 40px;
+  padding: calc(64px + var(--z-safe-area-top)) 0 40px;
 }
 
 .brand-logo {

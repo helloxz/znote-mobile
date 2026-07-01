@@ -372,7 +372,7 @@ const onMoveNoteCancel = () => {
   right: 0;
   z-index: 10;
   background: var(--z-bg-page);
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--z-safe-area-top);
 }
 
 /* 标题行 */
@@ -425,7 +425,7 @@ const onMoveNoteCancel = () => {
 
 /* 占位：撑开与 custom-header 等高的空间 */
 .header-placeholder {
-  height: calc(48px + env(safe-area-inset-top));
+  height: calc(48px + var(--z-safe-area-top));
 }
 
 /* 回收站列表 */
