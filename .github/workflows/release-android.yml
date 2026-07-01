@@ -99,10 +99,13 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
+          # 重命名为 znote-mobile-v{x.x.x}.apk
+          cp app/build/outputs/apk/release/app-release.apk \
+             "app/build/outputs/apk/release/znote-mobile-v${{ steps.ver.outputs.name }}.apk"
 
       - name: 上传 APK 到当前 Release
         run: |
-          APK="android/app/build/outputs/apk/release/app-release.apk"
+          APK="android/app/build/outputs/apk/release/znote-mobile-v${{ steps.ver.outputs.name }}.apk"
           gh release upload "${{ github.event.release.tag_name }}" "$APK" --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -110,5 +113,5 @@ jobs:
       - name: 归档构建产物（备用下载）
         uses: actions/upload-artifact@v4
         with:
-          name: znote-mobile-${{ steps.ver.outputs.name }}-apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+          name: znote-mobile-v${{ steps.ver.outputs.name }}-apk
+          path: android/app/build/outputs/apk/release/znote-mobile-v${{ steps.ver.outputs.name }}.apk
