@@ -20,6 +20,7 @@
               type="url"
               autocomplete="url"
               :clear-input="true"
+              @ionBlur="onServerUrlBlur"
             />
           </ion-item>
 
@@ -101,6 +102,17 @@ const loading = ref(false);
 if (userStore.serverUrl) {
   serverUrl.value = userStore.serverUrl;
 }
+
+/** 服务器地址失去焦点时：自动去掉路径部分，只保留协议+域名+端口 */
+const onServerUrlBlur = () => {
+  const val = serverUrl.value.trim();
+  if (!val) return;
+  // 匹配 http(s)://host:port，去掉后面的 /xxx 路径
+  const cleaned = val.replace(/^(https?:\/\/[^/]+).*$/, "$1");
+  if (cleaned !== val) {
+    serverUrl.value = cleaned;
+  }
+};
 
 /**
  * 提交登录
