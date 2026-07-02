@@ -125,6 +125,7 @@
       :show="showSettings"
       @update:show="showSettings = $event"
       @change-password="router.push('/change-password')"
+      @about="router.push('/about')"
       @logout="onLogout"
     />
 

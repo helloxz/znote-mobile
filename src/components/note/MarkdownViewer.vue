@@ -44,6 +44,8 @@ const codeTheme = {
   line-height: 1.75;
   color: #334155;
   overflow-wrap: break-word;
+  user-select: text;
+  -webkit-user-select: text;
 }
 .doc-content h1 { font-size: 1.75rem; font-weight: 700; margin-top: 2rem; margin-bottom: 0.75rem; color: #0f172a; }
 .doc-content h2 { font-size: 1.4rem; font-weight: 600; margin-top: 1.75rem; margin-bottom: 0.5rem; color: #1e293b; padding-bottom: 0.3rem; border-bottom: 1px solid #e2e8f0; }

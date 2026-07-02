@@ -23,10 +23,6 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'trash',
         component: () => import('@/views/TrashView.vue')
-      },
-      {
-        path: 'about',
-        component: () => import('@/views/AboutPage.vue')
       }
     ]
   },
@@ -42,6 +38,11 @@ const routes: Array<RouteRecordRaw> = [
     // 笔记详情子页：顶层路由（不在 TabsPage children 内），底部 Tab 栏自动隐藏
     path: '/note/:noteId',
     component: () => import('@/views/NoteDetailView.vue')
+  },
+  {
+    // 关于页：顶层路由（不在 TabsPage children 内），底部 Tab 栏自动隐藏
+    path: '/about',
+    component: () => import('@/views/AboutPage.vue')
   }
 ]
 

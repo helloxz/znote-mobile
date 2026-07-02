@@ -33,6 +33,15 @@
             <ion-icon :icon="chevronForwardOutline" class="setting-arrow" />
           </div>
 
+          <!-- 关于 -->
+          <div class="setting-item" @click="onAbout">
+            <div class="setting-left">
+              <ion-icon :icon="informationCircleOutline" class="setting-icon setting-icon-default" />
+              <span class="setting-text">{{ t("note.menu.about") }}</span>
+            </div>
+            <ion-icon :icon="chevronForwardOutline" class="setting-arrow" />
+          </div>
+
           <!-- 退出登录 -->
           <div class="setting-item" @click="onLogout">
             <div class="setting-left">
@@ -56,16 +65,17 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { IonIcon, alertController } from "@ionic/vue";
-import { keyOutline, logOutOutline, chevronForwardOutline } from "ionicons/icons";
+import { keyOutline, logOutOutline, chevronForwardOutline, informationCircleOutline } from "ionicons/icons";
 import { useUserStore } from "@/stores/user";
 
-const props = defineProps<{
+defineProps<{
   show: boolean;
 }>();
 
 const emit = defineEmits<{
   (e: "update:show", value: boolean): void;
   (e: "changePassword"): void;
+  (e: "about"): void;
   (e: "logout"): void;
 }>();
 
@@ -87,6 +97,12 @@ const onClose = () => {
 const onChangePassword = () => {
   emit("update:show", false);
   emit("changePassword");
+};
+
+/** 关于：关闭面板并通知父组件跳转关于页 */
+const onAbout = () => {
+  emit("update:show", false);
+  emit("about");
 };
 
 /** 退出登录：先关闭面板，再弹出确认框 */

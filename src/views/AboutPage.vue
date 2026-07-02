@@ -3,7 +3,9 @@
     <!-- 自定义固定 header，遵循项目统一命名规范 -->
     <div class="custom-header">
       <div class="title-row">
-        <span class="icon-btn placeholder"></span>
+        <button class="icon-btn" @click="onBack">
+          <ion-icon :icon="chevronBack" />
+        </button>
         <span class="title-text">{{ t("about.title") }}</span>
         <span class="icon-btn placeholder"></span>
       </div>
@@ -63,6 +65,7 @@
 
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
+import { useRouter } from "vue-router";
 import {
   IonPage,
   IonIcon,
@@ -75,12 +78,19 @@ import {
   syncOutline,
   codeSlashOutline,
   chevronForwardOutline,
+  chevronBack,
 } from "ionicons/icons";
 import { useToast } from "@/composables/useToast";
 import axios from "axios";
 import pkg from "../../package.json";
 
+const router = useRouter();
 const { t } = useI18n();
+
+/** 返回上一页 */
+const onBack = () => {
+  router.back();
+};
 
 /** 应用版本号（从 package.json 读取） */
 const version = pkg.version;
@@ -211,6 +221,10 @@ const checkUpdate = async () => {
   border: none;
   padding: 0;
   color: var(--z-text-primary);
+}
+
+.icon-btn ion-icon {
+  font-size: 22px;
 }
 
 .icon-btn.placeholder {

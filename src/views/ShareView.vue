@@ -112,6 +112,7 @@ import {
 import { shareSocialOutline } from "ionicons/icons";
 import { getServerUrl } from "@/services/storage";
 import { fetchMyShares, deleteShare } from "@/api/share";
+import { useShareStore } from "@/stores/share";
 import type { ShareItem } from "@/types/note";
 import ActionSheet from "@/components/note/ActionSheet.vue";
 import { useActionSheet } from "@/composables/useActionSheet";
@@ -119,6 +120,7 @@ import { useToast } from "@/composables/useToast";
 
 const { t } = useI18n();
 const actionSheet = useActionSheet();
+const shareStore = useShareStore();
 
 // 分享列表数据
 const shares = ref<ShareItem[]>([]);
@@ -166,9 +168,11 @@ onMounted(() => {
   loadShares();
 });
 
-/** Tab 切换时自动刷新分享列表（解决创建分享后数据不更新的问题） */
+/** Tab 切换时按需刷新：仅在列表被标记为脏时（如刚创建了分享）才重新请求 */
 onIonViewWillEnter(() => {
-  loadShares();
+  if (shareStore.consumeDirty()) {
+    loadShares();
+  }
 });
 
 /** 下拉刷新：重新加载分享列表 */

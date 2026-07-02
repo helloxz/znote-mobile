@@ -111,8 +111,10 @@ import { useToast } from "@/composables/useToast";
 import { checkmarkCircleOutline, copyOutline } from "ionicons/icons";
 import { useI18n } from "vue-i18n";
 import { createShare } from "@/api/share";
+import { useShareStore } from "@/stores/share";
 
 const { t } = useI18n();
+const shareStore = useShareStore();
 
 const props = defineProps<{
   show: boolean;
@@ -177,6 +179,8 @@ const onConfirm = async () => {
       created.value = true;
       shareLink.value = `${window.location.origin}/s/${result.share_id}`;
       sharePassword.value = result.password || "";
+      // 标记分享列表已变更，切回【我的分享】时刷新一次
+      shareStore.markDirty();
     } else {
       await showToast(t("share.create.failed"), "danger");
     }

@@ -133,3 +133,27 @@
   --z-status-bar-height: 0px;
   --z-safe-area-top: max(env(safe-area-inset-top), var(--z-status-bar-height));
 }
+
+/* ============================================================
+ * 下拉刷新图标修复
+ * 背景：ion-refresher 默认 z-index:-1（藏内容下方），且容器固定
+ * 60px 高从屏幕顶部向下排布。当页面 header 较高（如笔记页/分享页
+ * 含搜索框，约 104px）时，整个 60px 的 refresher 都落在
+ * z-index:10 的 .custom-header 覆盖区内，下拉时图标被永久盖住。
+ * 修复：① 提升 refresher 层级盖过 header；② 下移图标起始位置，
+ * 使其在高 header 下仍能落入可见区域。
+ * ion-refresher-content 为 scoped 封装（非 shadow），内部元素可
+ * 直接用普通 CSS 选择器命中。
+ * ============================================================ */
+
+/* 提升 refresher 层叠等级，盖过 z-index:10 的自定义 header */
+ion-refresher {
+  z-index: 11;
+}
+
+/* 下移图标在 60px 容器内的起始位置，使其在高 header（笔记页/分享页）
+ * 下拉时落入 header 下方可见区域；低 header（回收站）不受影响 */
+ion-refresher .refresher-pulling-icon,
+ion-refresher .refresher-refreshing-icon {
+  margin-top: 40px;
+}
