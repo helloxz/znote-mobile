@@ -21,10 +21,12 @@ onMounted(async () => {
     await StatusBar.setStyle({ style: Style.Light });
     await StatusBar.setBackgroundColor({ color: '#F7F8FA' }).catch(() => undefined);
 
-    // 部分 Android/MIUI 机型 env(safe-area-inset-top) 可能为 0。
-    // 当系统仍处于 overlay 模式时，用原生状态栏高度作为 CSS 安全区兜底。
+    // Android 15+ 强制 edge-to-edge，overlaysWebView/backgroundColor 可能失效。
+    // 这类设备即使 info.overlays=false，WebView 仍可能画到状态栏下方，需要主动补顶部安全区。
     const info = await StatusBar.getInfo();
-    const safeTop = info.overlays ? `${info.height}px` : '0px';
+    const androidVersion = navigator.userAgent.match(/Android\s+(\d+)/i);
+    const isAndroidEdgeToEdge = androidVersion ? Number(androidVersion[1]) >= 15 : false;
+    const safeTop = info.overlays || isAndroidEdgeToEdge ? `${info.height}px` : '0px';
     document.documentElement.style.setProperty('--z-status-bar-height', safeTop);
   } catch (e) {
     // 忽略：Web 或不支持的平台
