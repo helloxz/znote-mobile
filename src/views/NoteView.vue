@@ -165,6 +165,7 @@ import {
 } from "ionicons/icons";
 import { useUserStore } from "@/stores/user";
 import { useNoteStore } from "@/stores/note";
+import { useTrashStore } from "@/stores/trash";
 import type { Note } from "@/types/note";
 import SidebarMenu from "@/components/note/SidebarMenu.vue";
 import SettingsSheet from "@/components/note/SettingsSheet.vue";
@@ -179,6 +180,7 @@ const router = useRouter();
 const { t } = useI18n();
 const userStore = useUserStore();
 const noteStore = useNoteStore();
+const trashStore = useTrashStore();
 const actionSheet = useActionSheet();
 const { showToast } = useToast();
 
@@ -406,6 +408,10 @@ const onNoteContextMenu = async (note: Note) => {
   } else if (role === "trash") {
     // 移入回收站：软删除，store 更新后列表自动刷新
     const ok = await noteStore.deleteNote(note.id);
+    if (ok) {
+      // 标记回收站列表已变更，切到【回收站】tab 时刷新一次
+      trashStore.markDirty();
+    }
     await showToast(
       ok ? t("note.list.trash.success") : t("unknown"),
       ok ? "success" : "danger"

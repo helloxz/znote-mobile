@@ -106,11 +106,13 @@ import {
   IonSkeletonText,
   IonRefresher,
   IonRefresherContent,
+  onIonViewWillEnter,
   alertController,
 } from "@ionic/vue";
 import { trashOutline, timeOutline } from "ionicons/icons";
 import { fetchTrashNotes, emptyTrash, permanentDeleteNote, updateNote } from "@/api/notebook";
 import { useNoteStore } from "@/stores/note";
+import { useTrashStore } from "@/stores/trash";
 import MoveCategoryModal from "@/components/note/MoveCategoryModal.vue";
 import ActionSheet from "@/components/note/ActionSheet.vue";
 import { useActionSheet } from "@/composables/useActionSheet";
@@ -118,6 +120,7 @@ import { useToast } from "@/composables/useToast";
 import type { Note } from "@/types/note";
 
 const noteStore = useNoteStore();
+const trashStore = useTrashStore();
 const actionSheet = useActionSheet();
 const { showToast } = useToast();
 
@@ -162,6 +165,13 @@ onMounted(() => {
   // 确保分类树已加载（移动笔记时需要）：树为空则触发加载
   if (noteStore.notebookTree.length === 0) {
     noteStore.loadNotebookTree();
+  }
+});
+
+/** Tab 切换时按需刷新：仅在列表被标记为脏时（如刚移入回收站）才重新请求 */
+onIonViewWillEnter(() => {
+  if (trashStore.consumeDirty()) {
+    loadTrashNotes();
   }
 });
 
