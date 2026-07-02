@@ -180,6 +180,7 @@ const onRefresh = async (event: Event) => {
   const target = event.target as HTMLIonRefresherElement;
   await loadShares();
   target.complete();
+  await showToast(t("common.refresh.success"), "success");
 };
 
 // ========== 长按手势 ==========

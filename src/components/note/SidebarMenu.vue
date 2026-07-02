@@ -13,13 +13,22 @@
     <div class="section section-categories">
       <div class="section-header">
         <span>{{ t("note.categories") }}</span>
-        <button
+        <div class="header-actions">
+          <button
+            class="icon-btn"
+            :disabled="refreshing"
+            @click="refreshCategories"
+          >
+            <ion-icon :icon="refreshOutline" :class="{ 'spin': refreshing }" />
+          </button>
+          <button
           class="add-btn"
           :disabled="noteStore.activeNotebookId === null"
           @click="() => showAddCategoryAlert()"
         >
           <ion-icon :icon="addOutline" class="add-icon" />
         </button>
+        </div>
       </div>
       <div class="category-tree">
         <CategoryTreeNode
@@ -71,7 +80,7 @@ import {
   popoverController,
   alertController,
 } from "@ionic/vue";
-import { bookOutline, chevronDown, addOutline } from "ionicons/icons";
+import { bookOutline, chevronDown, addOutline, refreshOutline } from "ionicons/icons";
 import { useI18n } from "vue-i18n";
 import { useNoteStore } from "@/stores/note";
 import type { NotebookNode } from "@/types/note";
@@ -368,6 +377,23 @@ const onMoveCancel = () => {
 };
 
 const { showToast } = useToast();
+
+// 刷新分类树状态
+const refreshing = ref(false);
+
+/** 刷新分类树并重新加载当前分类的笔记 */
+const refreshCategories = async () => {
+  refreshing.value = true;
+  try {
+    await noteStore.loadNotebookTree();
+    if (noteStore.activeCategoryId) {
+      await noteStore.loadCategoryNotes(noteStore.activeCategoryId, true);
+    }
+    await showToast(t("common.refresh.success"), "success");
+  } finally {
+    refreshing.value = false;
+  }
+};
 </script>
 
 <style scoped>
@@ -424,6 +450,42 @@ const { showToast } = useToast();
 
 .add-icon {
   font-size: 18px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: var(--z-text-tertiary);
+  border-radius: var(--z-radius-sm);
+  transition: background-color 0.15s;
+}
+
+.icon-btn:active {
+  background: var(--z-bg-surface);
+}
+
+.icon-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* 笔记本切换条 */

@@ -148,12 +148,12 @@
 
 /* 提升 refresher 层叠等级，盖过 z-index:10 的自定义 header */
 ion-refresher {
-  z-index: 11;
+  z-index: 102 !important;
 }
 
 /* 下移图标在 60px 容器内的起始位置，使其在高 header（笔记页/分享页）
  * 下拉时落入 header 下方可见区域；低 header（回收站）不受影响 */
 ion-refresher .refresher-pulling-icon,
 ion-refresher .refresher-refreshing-icon {
-  margin-top: 40px;
+  margin-top: 200px !important;
 }

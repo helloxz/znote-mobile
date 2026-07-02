@@ -329,6 +329,7 @@ const onRefresh = async (event: Event) => {
   }
   // 结束刷新动画
   target.complete();
+  await showToast(t("common.refresh.success"), "success");
 };
 
 /** 拖拽结束：构建 items 调排序 API，失败回退 */

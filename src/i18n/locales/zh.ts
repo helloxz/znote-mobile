@@ -1,6 +1,7 @@
 export default {
-    // 应用名
+    // 通用
     "app.name": "ZNote",
+    "common.refresh.success": "数据已更新",
 
     // 底部 Tab 标签
     "tabs.notes": "笔记",

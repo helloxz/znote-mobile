@@ -4,9 +4,8 @@
  *
  * 基于 @bytemd/vue-next 的 Editor，与现有 MarkdownEditor.vue 接口一致。
  * mode="split" 强制渲染格式化按钮，CSS 隐藏右侧预览区让编辑器独占全宽。
- * MutationObserver 修正图片选择框的 accept 属性，避免移动端直接调起相机。
  */
-import { computed, onMounted } from "vue";
+import { computed } from "vue";
 import { Editor } from "@bytemd/vue-next";
 import "bytemd/dist/index.css";
 import gfm from "@bytemd/plugin-gfm";
@@ -23,51 +22,59 @@ const emit = defineEmits<{
     (e: "update:modelValue", value: string): void;
 }>();
 
-const plugins = [gfm()];
+/**
+ * 自定义图片上传插件
+ * 用明确 MIME 类型触发相册而非直接调相机，上传后插入相对路径
+ */
+function imagePlugin() {
+    return {
+        actions: [
+            {
+                title: "插入图片",
+                icon: '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="none" viewBox="0 0 48 48"><rect x="6" y="8" width="36" height="32" rx="4" stroke="currentColor" stroke-width="4"/><circle cx="17" cy="19" r="3" fill="currentColor"/><path d="M6 32l10-10 8 8 6-6 12 12" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/></svg>',
+                handler: {
+                    type: "action" as const,
+                    click(ctx: any) {
+                        const input = document.createElement("input");
+                        input.type = "file";
+                        input.accept = "image/png,image/jpeg,image/gif,image/webp";
+                        input.multiple = true;
+                        input.onchange = async () => {
+                            if (!input.files?.length) return;
+                            const formData = new FormData();
+                            for (const file of Array.from(input.files)) {
+                                formData.append("file[]", file);
+                            }
+                            try {
+                                const res = await req.post<ApiResponse<
+                                    Array<{ file_id: string; original_name: string; url: string }>
+                                >>("/api/user/file/upload", formData);
+                                const body = res.data;
+                                if (body?.code === 200 && Array.isArray(body.data)) {
+                                    const imgs = body.data
+                                        .map((item) => `![](${item.url})`)
+                                        .join("\n\n");
+                                    const { editor, appendBlock } = ctx;
+                                    appendBlock(imgs);
+                                    editor.focus();
+                                }
+                            } catch { /* ignore */ }
+                        };
+                        input.click();
+                    },
+                },
+            },
+        ],
+    };
+}
+
+const plugins = [gfm(), imagePlugin()];
 
 const value = computed(() => props.modelValue);
 
 const onChange = (value: string) => {
     emit("update:modelValue", value);
 };
-
-/** 图片上传：调后端 multipart 接口，返回相对路径 */
-const uploadImages = async (
-    files: File[]
-): Promise<{ url: string }[]> => {
-    const formData = new FormData();
-    for (const file of files) {
-        formData.append("file[]", file);
-    }
-    try {
-        const res = await req.post<ApiResponse<
-            Array<{ file_id: string; original_name: string; url: string }>
-        >>("/api/user/file/upload", formData);
-        const body = res.data;
-        if (body?.code === 200 && Array.isArray(body.data)) {
-            return body.data.map((item) => ({ url: item.url }));
-        }
-    } catch { /* ignore */ }
-    return [];
-};
-
-/**
- * 监听 DOM 中新增的 file input，修正 accept 属性：
- * "image/*" → "image/png,image/jpeg,image/gif,image/webp"
- * 明确 MIME 类型，大部分手机浏览器会弹出相册而非直接调相机。
- */
-onMounted(() => {
-    const observer = new MutationObserver((mutations) => {
-        for (const m of mutations) {
-            for (const node of Array.from(m.addedNodes)) {
-                if (node instanceof HTMLInputElement && node.type === "file" && node.accept === "image/*") {
-                    node.accept = "image/png,image/jpeg,image/gif,image/webp";
-                }
-            }
-        }
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-});
 </script>
 
 <template>
@@ -75,7 +82,6 @@ onMounted(() => {
     :value="value"
     :plugins="plugins"
     :locale="zhHans"
-    :upload-images="uploadImages"
     :placeholder="props.placeholder"
     mode="split"
     class="bytemd-editor"
@@ -114,9 +120,9 @@ onMounted(() => {
 
 /* 隐藏左侧不需要的按钮：3=斜体 / 7=行内代码 / 8=代码块 / 13=分割线 */
 .bytemd-toolbar-left > .bytemd-toolbar-icon:nth-child(3) { display: none; }
+.bytemd-toolbar-left > .bytemd-toolbar-icon:nth-child(6) { display: none; }
 .bytemd-toolbar-left > .bytemd-toolbar-icon:nth-child(7) { display: none; }
-.bytemd-toolbar-left > .bytemd-toolbar-icon:nth-child(8) { display: none; }
-.bytemd-toolbar-left > .bytemd-toolbar-icon:nth-child(13) { display: none; }
+.bytemd-toolbar-left > .bytemd-toolbar-icon:nth-child(12) { display: none; }
 
 /* 工具栏横向滚动（窄屏不裁剪按钮） */
 .bytemd-toolbar {

@@ -1,6 +1,7 @@
 export default {
-    // App name
+    // Common
     "app.name": "ZNote",
+    "common.refresh.success": "Data refreshed",
 
     // Bottom tab labels
     "tabs.notes": "Notes",
