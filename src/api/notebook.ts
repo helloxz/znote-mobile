@@ -40,6 +40,23 @@ export function updateNotebook(id: number, payload: UpdateNotebookPayload) {
     });
 }
 
+/** 创建笔记本/分类的入参 */
+export interface CreateNotebookPayload {
+    title: string;
+    parent_id?: number | null;   // null/省略 = 顶层笔记本；设置 = 子分类
+    description?: string;
+    sort_order?: number;
+}
+
+/**
+ * 创建笔记本/分类
+ * 路由：POST /api/user/notebook/create，body：{ title, parent_id? }
+ * 返回创建后的 Notebook（扁平结构，无 children）
+ */
+export function createNotebook(payload: CreateNotebookPayload) {
+    return req.post<ApiResponse<Notebook>>("/api/user/notebook/create", payload);
+}
+
 /** 删除结果统计 */
 export interface DeleteNotebooksResult {
     deleted_notebooks: number;

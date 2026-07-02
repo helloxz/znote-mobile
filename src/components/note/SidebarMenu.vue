@@ -11,7 +11,16 @@
 
     <!-- 下段：当前笔记本的分类树 -->
     <div class="section section-categories">
-      <div class="section-header">{{ t("note.categories") }}</div>
+      <div class="section-header">
+        <span>{{ t("note.categories") }}</span>
+        <button
+          class="add-btn"
+          :disabled="noteStore.activeNotebookId === null"
+          @click="() => showAddCategoryAlert()"
+        >
+          <ion-icon :icon="addOutline" class="add-icon" />
+        </button>
+      </div>
       <div class="category-tree">
         <CategoryTreeNode
           v-for="node in noteStore.currentCategoryTree"
@@ -62,7 +71,7 @@ import {
   popoverController,
   alertController,
 } from "@ionic/vue";
-import { bookOutline, chevronDown } from "ionicons/icons";
+import { bookOutline, chevronDown, addOutline } from "ionicons/icons";
 import { useI18n } from "vue-i18n";
 import { useNoteStore } from "@/stores/note";
 import type { NotebookNode } from "@/types/note";
@@ -186,26 +195,43 @@ const collectDescendantIds = (
   return ids;
 };
 
-/** 长按分类触发：弹出底部操作面板 */
-const onContextMenu = async (node: NotebookNode) => {
+/**
+ * 长按分类触发：弹出底部操作面板
+ * @param node 长按的分类节点
+ * @param level 节点层级（0-based，不算笔记本），用于判断是否允许添加子分类
+ */
+const onContextMenu = async (node: NotebookNode, level: number) => {
+  const buttons = [
+    {
+      text: t("note.category.renameText"),
+      role: "rename",
+    },
+  ];
+  // 未超过三级（level 0/1/2）才显示添加子分类，对齐 web 端 level < 2 限制
+  if (level < 2) {
+    buttons.push({
+      text: t("note.category.addChildText"),
+      role: "addChild",
+    });
+  }
+  buttons.push(
+    {
+      text: t("note.category.moveText"),
+      role: "move",
+    },
+    {
+      text: t("note.category.deleteText"),
+      role: "delete",
+    }
+  );
   const role = await actionSheet.showActionSheet({
     header: node.title,
-    buttons: [
-      {
-        text: t("note.category.renameText"),
-        role: "rename",
-      },
-      {
-        text: t("note.category.moveText"),
-        role: "move",
-      },
-      {
-        text: t("note.category.deleteText"),
-        role: "delete",
-      },
-    ],
+    buttons,
   });
-  if (role === "rename") {
+  if (role === "addChild") {
+    // 传入当前分类 id 作为父节点，创建子分类
+    await showAddCategoryAlert(node.id);
+  } else if (role === "rename") {
     await showRenameAlert(node);
   } else if (role === "move") {
     // 收集排除节点（自身 + 子孙），打开移动分类弹窗
@@ -248,6 +274,47 @@ const showRenameAlert = async (node: NotebookNode) => {
               : t("unknown"),
             ok ? "success" : "danger"
           );
+        },
+      },
+    ],
+  });
+  await alert.present();
+};
+
+/**
+ * 添加分类：Alert 输入框（对齐 showRenameAlert 模式）
+ * @param parentId 父节点 id；不传则默认 activeNotebookId（创建一级分类）
+ */
+const showAddCategoryAlert = async (parentId?: number) => {
+  const targetParentId = parentId ?? noteStore.activeNotebookId;
+  if (targetParentId === null) return;
+  const alert = await alertController.create({
+    header: t("note.category.create.title"),
+    inputs: [
+      {
+        name: "title",
+        value: "",
+        placeholder: t("note.category.create.placeholder"),
+      },
+    ],
+    buttons: [
+      { text: t("note.category.cancel"), role: "cancel" },
+      {
+        text: t("note.dialog.confirm"),
+        handler: async (data) => {
+          const title = (data?.title || "").trim();
+          if (!title) return; // 空名称阻止关闭
+          const result = await noteStore.createNotebook({
+            title,
+            parent_id: targetParentId,
+          });
+          await showToast(
+            result
+              ? t("note.category.create.success")
+              : t("unknown"),
+            result ? "success" : "danger"
+          );
+          // 不 emit("select")，抽屉保持打开，方便继续创建或整理
         },
       },
     ],
@@ -323,12 +390,40 @@ const { showToast } = useToast();
 }
 
 .section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   font-size: var(--z-fs-caption);
   font-weight: 600;
   color: var(--z-text-tertiary);
   padding: var(--z-space-sm) var(--z-space-sm);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+.add-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: var(--z-text-tertiary);
+  border-radius: var(--z-radius-sm);
+  transition: background-color 0.15s;
+}
+
+.add-btn:active {
+  background: var(--z-bg-surface);
+}
+
+.add-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.add-icon {
+  font-size: 18px;
 }
 
 /* 笔记本切换条 */

@@ -3,12 +3,14 @@ import {
     fetchNotebookList,
     fetchNoteList,
     createNote,
+    createNotebook as createNotebookApi,
     updateNotebook,
     deleteNotebooks,
     sortNotes,
     updateNote,
     deleteNote,
     searchNotes,
+    type CreateNotebookPayload,
     type UpdateNotebookPayload,
     type SortNoteItem,
     type UpdateNotePayload,
@@ -81,22 +83,20 @@ function collectDescendantIdsFromTree(
     let currentIds = [...ids];
     while (currentIds.length > 0) {
         const nextLevel: number[] = [];
-        for (const node of tree) {
-            // 深度优先在整棵树中找 parent_id 命中 currentIds 的节点
-            const stack = [...tree];
-            while (stack.length) {
-                const n = stack.pop()!;
-                if (n.children?.length) {
-                    for (const child of n.children) {
-                        if (
-                            currentIds.includes(child.parent_id ?? -1) &&
-                            !allIds.has(child.id)
-                        ) {
-                            allIds.add(child.id);
-                            nextLevel.push(child.id);
-                        }
-                        stack.push(child);
+        // 深度优先在整棵树中找 parent_id 命中 currentIds 的节点
+        const stack = [...tree];
+        while (stack.length) {
+            const n = stack.pop()!;
+            if (n.children?.length) {
+                for (const child of n.children) {
+                    if (
+                        currentIds.includes(child.parent_id ?? -1) &&
+                        !allIds.has(child.id)
+                    ) {
+                        allIds.add(child.id);
+                        nextLevel.push(child.id);
                     }
+                    stack.push(child);
                 }
             }
         }
@@ -133,6 +133,36 @@ function findNodeById(
         }
     }
     return null;
+}
+
+/**
+ * 递归工具：将新节点插入树中对应 parent_id 的 children 末尾，并按 sort_order 排序
+ * 用于创建笔记本/分类后就地插入，避免整树重载
+ */
+function insertNodeIntoTree(
+    tree: NotebookNode[],
+    newNode: NotebookNode
+): NotebookNode[] {
+    // 顶层插入（parent_id === null → 新笔记本）
+    if (newNode.parent_id === null || newNode.parent_id === undefined) {
+        const next = [...tree, newNode];
+        return next.sort((a, b) => a.sort_order - b.sort_order);
+    }
+    // 递归找父节点，插入其 children
+    return tree.map((node) => {
+        if (node.id === newNode.parent_id) {
+            const children = [...(node.children ?? []), newNode];
+            children.sort((a, b) => a.sort_order - b.sort_order);
+            return { ...node, children };
+        }
+        if (node.children?.length) {
+            return {
+                ...node,
+                children: insertNodeIntoTree(node.children, newNode),
+            };
+        }
+        return node;
+    });
 }
 
 export const useNoteStore = defineStore("note", {
@@ -229,6 +259,31 @@ export const useNoteStore = defineStore("note", {
                         this.activeCategoryId = null;
                     }
                 }
+            } finally {
+                this.loadingTree = false;
+            }
+        },
+
+        /**
+         * 创建笔记本/分类
+         * 调 API → 就地插入树 → 自动选中新分类（高亮 + 懒加载其笔记）
+         * @returns 创建后的节点，失败返回 null
+         */
+        async createNotebook(payload: CreateNotebookPayload): Promise<NotebookNode | null> {
+            this.loadingTree = true;
+            try {
+                const res = await createNotebookApi(payload);
+                const body = res.data as ApiResponse<Notebook>;
+                if (body.code === 200 && body.data) {
+                    const newNode: NotebookNode = { ...body.data, children: [] };
+                    this.notebookTree = insertNodeIntoTree(this.notebookTree, newNode);
+                    // 自动选中新分类（高亮 + 懒加载其笔记，不关闭抽屉由调用方控制）
+                    await this.selectCategory(newNode.id);
+                    return newNode;
+                }
+                return null;
+            } catch {
+                return null;
             } finally {
                 this.loadingTree = false;
             }

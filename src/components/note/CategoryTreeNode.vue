@@ -43,7 +43,7 @@
         :active-category-id="activeCategoryId"
         :level="level + 1"
         @select="(id: number) => emit('select', id)"
-        @contextmenu="(n: NotebookNode) => emit('contextmenu', n)"
+        @contextmenu="(n: NotebookNode, l: number) => emit('contextmenu', n, l)"
       />
     </div>
   </div>
@@ -85,10 +85,10 @@ const hasChildren = computed(
 /** 当前节点是否展开 */
 const isExpanded = computed(() => expandedIds.value.has(props.node.id));
 
-// 事件定义：select 选中分类，contextmenu 长按/右键触发菜单
+// 事件定义：select 选中分类，contextmenu 长按/右键触发菜单（携带 level 供调用方判断层级）
 const emit = defineEmits<{
   (e: "select", id: number): void;
-  (e: "contextmenu", node: NotebookNode): void;
+  (e: "contextmenu", node: NotebookNode, level: number): void;
 }>();
 
 /** 点击行：选中该分类 */
@@ -129,7 +129,7 @@ const onTouchEnd = () => {
   clearTimer();
   if (longPressTriggered) {
     longPressTriggered = false;
-    emit("contextmenu", props.node);
+    emit("contextmenu", props.node, props.level);
   }
 };
 
@@ -147,7 +147,7 @@ const clearTimer = () => {
 
 /** PC 端右键触发（开发调试用） */
 const onContextMenu = () => {
-  emit("contextmenu", props.node);
+  emit("contextmenu", props.node, props.level);
 };
 </script>
 
