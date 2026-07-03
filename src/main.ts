@@ -5,6 +5,8 @@ import { createPinia } from 'pinia';
 import { IonicVue } from '@ionic/vue';
 import i18n from './i18n';
 import { initStorage } from './services/storage';
+import { registerSW } from 'virtual:pwa-register';
+import { useToast } from './composables/useToast';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/vue/css/core.css';
@@ -46,4 +48,15 @@ initStorage().then(() => {
   router.isReady().then(() => {
     app.mount('#app');
   });
+});
+
+// 注册 PWA Service Worker：监听新版本可用时通过 toast 提示用户刷新
+// 仅在 Web 环境生效，Capacitor WebView 中自动忽略，无副作用
+const { showToast } = useToast();
+registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    // 复用现有 toast 系统，提示用户刷新即可拿到新版本外壳
+    showToast('新版本已就绪，请刷新页面以更新', 'success');
+  },
 });

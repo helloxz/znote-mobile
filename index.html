@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Ionic App</title>
+    <title>ZNote Mobile</title>
 
     <base href="/" />
 
@@ -14,12 +14,18 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
 
+    <!-- PWA 主题色（与 manifest.theme_color 一致，便于浏览器识别主题色） -->
+    <meta name="theme-color" content="#FF6900" />
+
     <link rel="shortcut icon" type="image/png" href="/favicon.png" />
 
     <!-- add to homescreen for ios -->
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Ionic App" />
+    <meta name="apple-mobile-web-app-title" content="ZNote" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <!-- iOS 添加到主屏幕图标（PNG 格式，iOS 不支持 webp） -->
+    <link rel="apple-touch-icon" href="/icons/icon-192.webp" />
   </head>
 
   <body>

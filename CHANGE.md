@@ -1,5 +1,7 @@
 ## 20260703
 
+* 新增：PWA 支持（Web 端可安装到桌面/离线加载应用外壳，复用现有 toast 提示更新）
+* 新增：Cloudflare Pages 部署配置（app.znote.xphub.dev）
 * 修复：Android 15以上顶部状态栏重叠问题
 * 优化：笔记本切换
 * 修改笔记本图标
