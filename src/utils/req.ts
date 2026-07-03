@@ -1,5 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { getToken, getServerUrl } from "@/services/storage";
+import { useToast } from "@/composables/useToast";
+import i18n from "@/i18n";
 
 /**
  * axios 实例
@@ -9,7 +11,7 @@ import { getToken, getServerUrl } from "@/services/storage";
  * 登录前需先 setServerUrl()，之后所有请求（含登录请求本身）共用此实例。
  */
 const req = axios.create({
-    timeout: 120000,
+    timeout: 30000,
 });
 
 // 请求拦截器：动态注入 baseURL + Bearer Token
@@ -42,6 +44,10 @@ req.interceptors.response.use(
             // 无 response：断网 / DNS 失败 / 服务器地址不可达
             msg = "network.disconnected";
         }
+        // 弹出已翻译的网络错误提示，全局统一处理
+        const { showToast } = useToast();
+        showToast(i18n.global.t(msg));
+
         return Promise.reject({
             code: -1000,
             msg,

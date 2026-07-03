@@ -161,10 +161,10 @@ const loadTrashNotes = async () => {
 };
 
 onMounted(() => {
-  loadTrashNotes();
+  loadTrashNotes().catch(() => {});
   // 确保分类树已加载（移动笔记时需要）：树为空则触发加载
   if (noteStore.notebookTree.length === 0) {
-    noteStore.loadNotebookTree();
+    noteStore.loadNotebookTree().catch(() => {});
   }
 });
 
@@ -178,9 +178,14 @@ onIonViewWillEnter(() => {
 /** 下拉刷新：重新加载回收站列表 */
 const onRefresh = async (event: Event) => {
   const target = event.target as HTMLIonRefresherElement;
-  await loadTrashNotes();
-  target.complete();
-  await showToast(t("common.refresh.success"), "success");
+  try {
+    await loadTrashNotes();
+    target.complete();
+    await showToast(t("common.refresh.success"), "success");
+  } catch {
+    // 网络错误由 axios 拦截器统一弹 toast，此处不重复弹
+    target.complete();
+  }
 };
 
 // ========== 长按手势 ==========

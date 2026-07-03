@@ -165,7 +165,7 @@ const loadShares = async () => {
 };
 
 onMounted(() => {
-  loadShares();
+  loadShares().catch(() => {});
 });
 
 /** Tab 切换时按需刷新：仅在列表被标记为脏时（如刚创建了分享）才重新请求 */
@@ -178,9 +178,14 @@ onIonViewWillEnter(() => {
 /** 下拉刷新：重新加载分享列表 */
 const onRefresh = async (event: Event) => {
   const target = event.target as HTMLIonRefresherElement;
-  await loadShares();
-  target.complete();
-  await showToast(t("common.refresh.success"), "success");
+  try {
+    await loadShares();
+    target.complete();
+    await showToast(t("common.refresh.success"), "success");
+  } catch {
+    // 网络错误由 axios 拦截器统一弹 toast，此处不重复弹
+    target.complete();
+  }
 };
 
 // ========== 长按手势 ==========

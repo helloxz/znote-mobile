@@ -4,7 +4,7 @@
       <ion-router-outlet></ion-router-outlet>
       <ion-tab-bar slot="bottom">
         <ion-tab-button tab="note" href="/note">
-          <ion-icon aria-hidden="true" :icon="bookOutline" />
+          <ion-icon aria-hidden="true" :icon="documentTextOutline" />
           <ion-label>{{ t("tabs.notes") }}</ion-label>
         </ion-tab-button>
 
@@ -32,7 +32,7 @@ import {
   IonPage,
   IonRouterOutlet,
 } from "@ionic/vue";
-import { bookOutline, shareOutline, trashOutline } from "ionicons/icons";
+import { documentTextOutline, shareOutline, trashOutline } from "ionicons/icons";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();

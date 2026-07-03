@@ -189,7 +189,7 @@ const keyword = ref("");
 
 // 首屏加载笔记本树
 onMounted(() => {
-  void noteStore.loadNotebookTree();
+  noteStore.loadNotebookTree().catch(() => {});
 });
 
 // ========== 搜索：输入达 3 字符自动搜索，清空恢复原列表 ==========
@@ -323,13 +323,18 @@ const sorting = ref(false);
 /** 下拉刷新：重新加载当前分类的笔记列表 */
 const onRefresh = async (event: Event) => {
   const target = event.target as HTMLIonRefresherElement;
-  // 非搜索模式且有选中分类时，强制刷新该分类的笔记
-  if (!noteStore.searchMode && noteStore.activeCategoryId) {
-    await noteStore.loadCategoryNotes(noteStore.activeCategoryId, true);
+  try {
+    // 非搜索模式且有选中分类时，强制刷新该分类的笔记
+    if (!noteStore.searchMode && noteStore.activeCategoryId) {
+      await noteStore.loadCategoryNotes(noteStore.activeCategoryId, true);
+    }
+    // 结束刷新动画
+    target.complete();
+    await showToast(t("common.refresh.success"), "success");
+  } catch {
+    // 网络错误由 axios 拦截器统一弹 toast，此处不重复弹
+    target.complete();
   }
-  // 结束刷新动画
-  target.complete();
-  await showToast(t("common.refresh.success"), "success");
 };
 
 /** 拖拽结束：构建 items 调排序 API，失败回退 */

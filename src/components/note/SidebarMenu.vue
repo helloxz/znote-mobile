@@ -2,11 +2,44 @@
   <div class="sidebar">
     <!-- 上段：当前笔记本 + 切换按钮 -->
     <div class="section notebook-section">
-      <div class="notebook-bar" @click="showSwitcher">
-        <ion-icon :icon="bookOutline" class="nb-icon" />
+      <div class="notebook-bar" @click="toggleNotebookList">
+        <ion-icon :icon="documentTextOutline" class="nb-icon" />
         <span class="nb-title">{{ currentNotebookTitle }}</span>
-        <ion-icon :icon="chevronDown" class="switch-icon" />
+        <ion-icon
+          :icon="showNotebookList ? chevronUp : chevronDown"
+          class="switch-icon"
+        />
       </div>
+
+      <!-- 笔记本列表：内联展开/收起，无弹层 -->
+      <Transition name="nb-list">
+        <div v-if="showNotebookList" class="notebook-list">
+          <!-- 笔记本列表项 -->
+          <div v-if="noteStore.notebookTree.length > 0" class="nb-items">
+            <div
+              v-for="nb in noteStore.notebookTree"
+              :key="nb.id"
+              class="nb-item"
+              :class="{ active: nb.id === noteStore.activeNotebookId }"
+              @click="selectNotebook(nb.id)"
+            >
+              <ion-icon
+                :icon="nb.id === noteStore.activeNotebookId ? documentText : documentTextOutline"
+                class="nb-item-icon"
+              />
+              <span class="nb-item-title">{{ nb.title }}</span>
+              <ion-icon
+                v-if="nb.id === noteStore.activeNotebookId"
+                :icon="checkmarkCircle"
+                class="nb-item-check"
+              />
+            </div>
+          </div>
+          <div v-else class="empty-hint">
+            {{ t("note.empty") }}
+          </div>
+        </div>
+      </Transition>
     </div>
 
     <!-- 下段：当前笔记本的分类树 -->
@@ -22,12 +55,12 @@
             <ion-icon :icon="refreshOutline" :class="{ 'spin': refreshing }" />
           </button>
           <button
-          class="add-btn"
-          :disabled="noteStore.activeNotebookId === null"
-          @click="() => showAddCategoryAlert()"
-        >
-          <ion-icon :icon="addOutline" class="add-icon" />
-        </button>
+            class="add-btn"
+            :disabled="noteStore.activeNotebookId === null"
+            @click="() => showAddCategoryAlert()"
+          >
+            <ion-icon :icon="addOutline" class="add-icon" />
+          </button>
         </div>
       </div>
       <div class="category-tree">
@@ -77,15 +110,21 @@
 import { ref, provide, watch, computed } from "vue";
 import {
   IonIcon,
-  popoverController,
   alertController,
 } from "@ionic/vue";
-import { bookOutline, chevronDown, addOutline, refreshOutline } from "ionicons/icons";
+import {
+  documentTextOutline,
+  documentText,
+  chevronDown,
+  chevronUp,
+  addOutline,
+  refreshOutline,
+  checkmarkCircle,
+} from "ionicons/icons";
 import { useI18n } from "vue-i18n";
 import { useNoteStore } from "@/stores/note";
 import type { NotebookNode } from "@/types/note";
 import CategoryTreeNode from "@/components/note/CategoryTreeNode.vue";
-import NotebookSwitcher from "@/components/note/NotebookSwitcher.vue";
 import MoveCategoryModal from "@/components/note/MoveCategoryModal.vue";
 import ActionSheet from "@/components/note/ActionSheet.vue";
 import { useActionSheet } from "@/composables/useActionSheet";
@@ -94,6 +133,20 @@ import { useToast } from "@/composables/useToast";
 const { t } = useI18n();
 const noteStore = useNoteStore();
 const actionSheet = useActionSheet();
+
+// ========== 笔记本列表：内联展开/收起 ==========
+const showNotebookList = ref(false);
+
+/** 切换笔记本列表展开/收起 */
+const toggleNotebookList = () => {
+  showNotebookList.value = !showNotebookList.value;
+};
+
+/** 选择笔记本：切换 + 收起列表 */
+const selectNotebook = (id: number) => {
+  void noteStore.switchNotebook(id);
+  showNotebookList.value = false;
+};
 
 // 展开状态：节点 id 集合（组件本地管理，切换笔记本时重置）
 const expandedIds = ref<Set<number>>(new Set());
@@ -135,27 +188,6 @@ watch(
     expandedIds.value = new Set();
   }
 );
-
-/** 弹出笔记本切换 Popover */
-const showSwitcher = async (ev: Event) => {
-  const popover = await popoverController.create({
-    component: NotebookSwitcher,
-    event: ev,
-    translucent: true,
-    showBackdrop: true,
-    alignment: "start",
-  });
-  await popover.present();
-  const { data } = await popover.onDidDismiss();
-  if (data?.notebookId !== undefined) {
-    await onSwitchNotebook(data.notebookId);
-  }
-};
-
-/** 切换笔记本 */
-const onSwitchNotebook = (id: number) => {
-  void noteStore.switchNotebook(id);
-};
 
 /** 选中分类：触发 store 选中 + 通知父组件关闭菜单 */
 const emit = defineEmits<{ (e: "select"): void }>();
@@ -390,6 +422,8 @@ const refreshCategories = async () => {
       await noteStore.loadCategoryNotes(noteStore.activeCategoryId, true);
     }
     await showToast(t("common.refresh.success"), "success");
+  } catch {
+    // 网络错误由 axios 拦截器统一弹 toast，此处不重复弹
   } finally {
     refreshing.value = false;
   }
@@ -419,7 +453,7 @@ const refreshCategories = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: var(--z-fs-caption);
+  font-size: var(--z-fs-body-sm);
   font-weight: 600;
   color: var(--z-text-tertiary);
   padding: var(--z-space-sm) var(--z-space-sm);
@@ -488,12 +522,12 @@ const refreshCategories = async () => {
   to { transform: rotate(360deg); }
 }
 
-/* 笔记本切换条 */
+/* ========== 笔记本顶部栏 ========== */
 .notebook-bar {
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 44px;
+  height: 48px;
   padding: 0 var(--z-space-sm);
   border-radius: var(--z-radius-sm);
   cursor: pointer;
@@ -506,8 +540,9 @@ const refreshCategories = async () => {
 }
 
 .nb-icon {
-  font-size: 18px;
+  font-size: 20px;
   color: var(--z-primary);
+  flex-shrink: 0;
 }
 
 .nb-title {
@@ -522,9 +557,97 @@ const refreshCategories = async () => {
 .switch-icon {
   font-size: 16px;
   color: var(--z-text-tertiary);
+  flex-shrink: 0;
+  transition: transform 0.2s;
 }
 
-/* 分类树 */
+/* ========== 笔记本内联列表（展开/收起动画） ========== */
+
+/* Vue Transition：max-height + opacity 双动画 */
+.nb-list-enter-active {
+  transition: max-height 0.25s ease-out, opacity 0.2s ease-out;
+  overflow: hidden;
+}
+.nb-list-leave-active {
+  transition: max-height 0.2s ease-in, opacity 0.15s ease-in;
+  overflow: hidden;
+}
+.nb-list-enter-from,
+.nb-list-leave-to {
+  max-height: 0;
+  opacity: 0;
+}
+.nb-list-enter-to,
+.nb-list-leave-from {
+  max-height: 400px;
+  opacity: 1;
+}
+
+.notebook-list {
+  padding: 0 var(--z-space-xs);
+}
+
+/* 笔记本列表项容器 */
+.nb-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* 笔记本列表项 */
+.nb-item {
+  display: flex;
+  align-items: center;
+  gap: var(--z-space-sm);
+  height: 44px;
+  padding: 0 var(--z-space-sm);
+  border-radius: var(--z-radius-sm);
+  cursor: pointer;
+  color: var(--z-text-primary);
+  transition: background-color 0.15s;
+}
+
+.nb-item:active {
+  background: var(--z-bg-surface);
+}
+
+/* 选中态：浅橙底色 + 主色文字，对齐 CategoryTreeNode */
+.nb-item.active {
+  background: color-mix(in srgb, var(--z-primary) 12%, transparent);
+  color: var(--z-primary);
+}
+
+.nb-item-icon {
+  flex-shrink: 0;
+  font-size: 17px;
+  color: var(--z-text-secondary);
+}
+
+.nb-item.active .nb-item-icon {
+  color: var(--z-primary);
+}
+
+.nb-item-title {
+  flex: 1;
+  font-size: var(--z-fs-body);
+  color: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nb-item.active .nb-item-title {
+  font-weight: 600;
+}
+
+/* 选中勾（圆形镂空 checkmark） */
+.nb-item-check {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--z-primary);
+}
+
+/* ========== 分类树 ========== */
 .category-tree {
   display: flex;
   flex-direction: column;
