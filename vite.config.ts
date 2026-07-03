@@ -1,6 +1,5 @@
 /// <reference types="vitest" />
 
-import legacy from '@vitejs/plugin-legacy'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
@@ -10,7 +9,6 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [
     vue(),
-    legacy(),
     // PWA 支持：仅缓存应用外壳（HTML/JS/CSS），API 请求走 NetworkOnly
     // Capacitor WebView 中 SW 自动失效，不影响原生构建链路
     VitePWA({
