@@ -103,15 +103,14 @@ if (userStore.serverUrl) {
   serverUrl.value = userStore.serverUrl;
 }
 
-/** 服务器地址失去焦点时：自动去掉路径部分，只保留协议+域名+端口 */
+/** 服务器地址失去焦点时：去所有空格、转小写、去掉路径部分，只保留协议+域名+端口 */
 const onServerUrlBlur = () => {
-  const val = serverUrl.value.trim();
+  // 去掉所有空格 + 转小写
+  let val = serverUrl.value.replace(/\s+/g, "").toLowerCase();
   if (!val) return;
   // 匹配 http(s)://host:port，去掉后面的 /xxx 路径
-  const cleaned = val.replace(/^(https?:\/\/[^/]+).*$/, "$1");
-  if (cleaned !== val) {
-    serverUrl.value = cleaned;
-  }
+  val = val.replace(/^(https?:\/\/[^/]+).*$/, "$1");
+  serverUrl.value = val;
 };
 
 /**
