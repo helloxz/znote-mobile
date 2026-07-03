@@ -1,7 +1,7 @@
 {
   "name": "znote-mobile",
   "private": true,
-  "version": "0.1.7",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,12 +12,16 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@bytemd/plugin-gfm": "^1.22.0",
+    "@bytemd/vue-next": "^1.22.0",
     "@capacitor/android": "^8.4.1",
     "@capacitor/app": "8.1.0",
     "@capacitor/core": "8.4.1",
+    "@capacitor/filesystem": "^8.1.2",
     "@capacitor/haptics": "8.0.2",
     "@capacitor/keyboard": "8.0.5",
     "@capacitor/preferences": "^8.0.1",
+    "@capacitor/share": "^8.0.1",
     "@capacitor/status-bar": "8.0.2",
     "@incremark/theme": "^1.0.2",
     "@incremark/vue": "^1.0.2",
@@ -25,9 +29,8 @@
     "@ionic/vue-router": "^8.0.0",
     "axios": "^1.18.1",
     "bytemd": "^1.22.0",
-    "@bytemd/plugin-gfm": "^1.22.0",
-    "@bytemd/vue-next": "^1.22.0",
     "ionicons": "^7.0.0",
+    "modern-screenshot": "^4.7.0",
     "pinia": "^3.0.4",
     "vue": "^3.3.0",
     "vue-draggable-plus": "^0.6.1",

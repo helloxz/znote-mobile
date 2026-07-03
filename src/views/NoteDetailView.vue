@@ -138,6 +138,7 @@ import MarkdownViewer from "@/components/note/MarkdownViewer.vue";
 import MarkdownEditor from "@/components/note/MarkdownEditorBytemd.vue";
 import { getServerUrl } from "@/services/storage";
 import { useToast } from "@/composables/useToast";
+import { prependImageDomain } from "@/utils/markdownImage";
 
 const route = useRoute();
 const router = useRouter();
@@ -176,40 +177,6 @@ const formatTime = (val: any): string => {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
-};
-
-/**
- * 将 Markdown 内容中的相对路径图片 URL 补全为绝对路径
- * - 匹配 Markdown 图片语法 ![alt](url)
- * - 匹配 HTML img 标签 <img src="url">
- * - 已有协议（http/https）的 URL 不做处理
- * - baseUrl 为空时原样返回
- */
-const prependImageDomain = (content: string, baseUrl: string): string => {
-  if (!baseUrl) return content;
-  const cleanBase = baseUrl.replace(/\/$/, ""); // 去掉末尾斜杠
-
-  // 处理 Markdown 图片: ![alt](url)
-  let result = content.replace(
-    /(!\[[^\]]*\])\(([^)]+)\)/g,
-    (match, alt, url) => {
-      if (/^https?:\/\//i.test(url)) return match;
-      const normalized = url.startsWith("/") ? url : "/" + url;
-      return `${alt}(${cleanBase}${normalized})`;
-    }
-  );
-
-  // 处理 HTML img 标签: <img src="url" ...>
-  result = result.replace(
-    /(<img[^>]*\ssrc=")([^"]+)("[^>]*>)/g,
-    (match, prefix, url, suffix) => {
-      if (/^https?:\/\//i.test(url)) return match;
-      const normalized = url.startsWith("/") ? url : "/" + url;
-      return `${prefix}${cleanBase}${normalized}${suffix}`;
-    }
-  );
-
-  return result;
 };
 
 const loadNote = async (id: number) => {

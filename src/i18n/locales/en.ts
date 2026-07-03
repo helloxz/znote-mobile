@@ -25,7 +25,12 @@ export default {
     // Note list actions
     "note.list.pin": "Pin",
     "note.list.unpin": "Unpin",
-    "note.list.share": "Create Share",
+    "note.list.share": "Share Link",
+    "note.list.shareImage": "Share as Image",
+    "note.list.shareImage.success": "Image generated and shared",
+    "note.list.shareImage.failed": "Share failed, please retry",
+    "note.list.shareImage.tooLong": "Note is too long to share as image",
+    "note.list.shareImage.empty": "Note is empty, cannot share",
     "note.list.move": "Move Note",
     "note.list.trash": "Move to Trash",
     "note.list.cancel": "Cancel",

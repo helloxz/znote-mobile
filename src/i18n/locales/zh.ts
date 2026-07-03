@@ -25,7 +25,12 @@ export default {
     // 笔记列表操作菜单
     "note.list.pin": "置顶",
     "note.list.unpin": "取消置顶",
-    "note.list.share": "创建分享",
+    "note.list.share": "链接分享",
+    "note.list.shareImage": "图片分享",
+    "note.list.shareImage.success": "图片已生成并分享",
+    "note.list.shareImage.failed": "分享失败，请重试",
+    "note.list.shareImage.tooLong": "笔记内容过长，无法分享为图片",
+    "note.list.shareImage.empty": "笔记内容为空，无法分享",
     "note.list.move": "移动笔记",
     "note.list.trash": "移入回收站",
     "note.list.cancel": "取消",

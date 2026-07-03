@@ -138,6 +138,18 @@
       @update:show="actionSheet.onClose"
       @select="actionSheet.onSelect"
     />
+
+    <!--
+      离屏快照容器：生成分享图片时渲染 NoteSnapshotCard，截图后立即卸载。
+      绝对定位移出可视区且 z-index 置底，不能用 display:none（截图库拿不到布局尺寸）。
+      宽度由卡片自身（750px）决定，容器只负责承载。
+    -->
+    <div v-if="snapshotNote" class="snapshot-host">
+      <NoteSnapshotCard
+        ref="snapshotCardRef"
+        :note="snapshotNote"
+      />
+    </div>
   </ion-page>
 </template>
 
@@ -173,8 +185,10 @@ import NoteListItem from "@/components/note/NoteListItem.vue";
 import ActionSheet from "@/components/note/ActionSheet.vue";
 import MoveCategoryModal from "@/components/note/MoveCategoryModal.vue";
 import CreateShareModal from "@/components/note/CreateShareModal.vue";
+import NoteSnapshotCard from "@/components/note/NoteSnapshotCard.vue";
 import { useActionSheet } from "@/composables/useActionSheet";
 import { useToast } from "@/composables/useToast";
+import { useNoteImageShare } from "@/composables/useNoteImageShare";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -183,6 +197,7 @@ const noteStore = useNoteStore();
 const trashStore = useTrashStore();
 const actionSheet = useActionSheet();
 const { showToast } = useToast();
+const { snapshotNote, snapshotCardRef, shareAsImage } = useNoteImageShare();
 
 // 搜索关键字
 const keyword = ref("");
@@ -391,6 +406,10 @@ const onNoteContextMenu = async (note: Note) => {
         role: "share",
       },
       {
+        text: t("note.list.shareImage"),
+        role: "share-image",
+      },
+      {
         text: t("note.list.move"),
         role: "move",
       },
@@ -433,6 +452,10 @@ const onNoteContextMenu = async (note: Note) => {
     shareNoteId.value = note.id;
     shareNoteTitle.value = note.title || t("note.untitled");
     showCreateShareModal.value = true;
+  } else if (role === "share-image") {
+    // 笔记转图片并唤起系统分享面板（微信/QQ 等）
+    const res = await shareAsImage(note);
+    await showToast(t(res.msg), res.ok ? "success" : "danger");
   }
 };
 
@@ -654,4 +677,12 @@ const onMoveNoteCancel = () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* 离屏快照容器：绝对定位移出可视区且置底，不可用 display:none（截图库拿不到布局尺寸） */
+.snapshot-host {
+  position: fixed;
+  left: -99999px;
+  top: 0;
+  z-index: -1;
+  pointer-events: none;
+}
 </style>
