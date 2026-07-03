@@ -38,16 +38,16 @@
       <!-- 占位：撑开与 custom-header 等高的空间，避免内容被 fixed header 遮挡 -->
       <div class="header-placeholder"></div>
 
+      <!-- 下拉刷新：保持为 ion-content 直接子元素，避免 iOS PWA 下 slot/flex 组合裁切首个卡片 -->
+      <ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
+        <ion-refresher-content
+          pulling-icon="lines"
+          refreshing-spinner="crescent"
+        />
+      </ion-refresher>
+
       <!-- 笔记列表 -->
       <div class="note-list">
-        <!-- 下拉刷新 -->
-        <ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
-          <ion-refresher-content
-            pulling-icon="lines"
-            refreshing-spinner="crescent"
-          />
-        </ion-refresher>
-
         <!-- 加载中：骨架屏（分类加载 or 搜索加载） -->
         <template v-if="noteStore.loadingNotes || noteStore.loadingSearch">
           <div v-for="i in 6" :key="`sk-${i}`" class="note-card skeleton-card">
