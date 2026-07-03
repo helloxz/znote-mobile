@@ -48,7 +48,7 @@ git push -u origin main
 | **Project name** | `znote-app`（或你喜欢的名字） |
 | **Production branch** | `main` |
 | **Framework preset** | `Vite`（或选择 `None`） |
-| **Build command** | `bun run build` |
+| **Build command** | `npm install && npm run build` |
 | **Build output directory** | `dist` |
 
 **Environment Variables**（点击 Add variable）：
@@ -56,11 +56,10 @@ git push -u origin main
 | Variable | Value |
 |----------|-------|
 | `NODE_VERSION` | `22` |
-| `BUN_VERSION` | `1`（使用最新 bun） |
 
 **说明**：
-- Cloudflare Pages 现在支持 bun 构建
-- 如果 bun 构建失败，可以改用 npm：`npm install && npm run build`
+- 使用 npm 构建，兼容性最好
+- 指定 Node.js 22 版本，避免版本问题
 
 ### 5. 开始部署
 
@@ -118,23 +117,15 @@ PR #123 → https://abc123.znote-app.pages.dev
 
 ## 常见问题
 
-### 1. 构建失败：找不到 bun
+### 1. 构建失败
 
-Cloudflare Pages 可能不支持 bun，解决方案：
+**检查 Build log**：
+- 进入项目 → **Deployments** → 点击最近的部署 → 查看 **Build log**
 
-**方案 A：使用 Cloudflare 的 bun 支持**
-
-确保环境变量设置了：
-```
-BUN_VERSION=1
-```
-
-**方案 B：改用 npm 构建**
-
-修改构建命令为：
-```bash
-npm install && npm run build
-```
+**常见原因**：
+- 依赖安装失败：检查 `package.json` 是否正确
+- 构建命令错误：确保是 `npm install && npm run build`
+- Node.js 版本问题：确保环境变量 `NODE_VERSION=22`
 
 ### 2. PWA 无法安装
 
