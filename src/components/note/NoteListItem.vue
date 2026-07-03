@@ -101,6 +101,7 @@ const onTouchStart = (e: TouchEvent) => {
   longPressTriggered = false;
   longPressTimer = setTimeout(() => {
     longPressTriggered = true;
+    emit("contextmenu", props.note);
   }, 500);
 };
 
@@ -117,10 +118,6 @@ const onTouchMove = (e: TouchEvent) => {
 
 const onTouchEnd = () => {
   clearTimer();
-  if (longPressTriggered) {
-    longPressTriggered = false;
-    emit("contextmenu", props.note);
-  }
 };
 
 const onTouchCancel = () => {
@@ -149,6 +146,10 @@ const onContextMenu = () => {
   border-radius: var(--z-radius-md);
   padding: var(--z-space-md);
   box-shadow: var(--z-shadow-xs);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
 }
 
 /* 拖拽把手 */

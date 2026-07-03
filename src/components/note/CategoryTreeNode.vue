@@ -111,6 +111,7 @@ const onTouchStart = (e: TouchEvent) => {
   longPressTriggered = false;
   longPressTimer = setTimeout(() => {
     longPressTriggered = true;
+    emit("contextmenu", props.node, props.level);
   }, 500);
 };
 
@@ -127,10 +128,6 @@ const onTouchMove = (e: TouchEvent) => {
 
 const onTouchEnd = () => {
   clearTimer();
-  if (longPressTriggered) {
-    longPressTriggered = false;
-    emit("contextmenu", props.node, props.level);
-  }
 };
 
 const onTouchCancel = () => {
@@ -161,6 +158,10 @@ const onContextMenu = () => {
   cursor: pointer;
   color: var(--z-text-primary);
   transition: background-color 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
 }
 
 .node-row:active {

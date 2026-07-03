@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <!-- 自定义固定顶部栏：标题 + 清空按钮 -->
-    <div class="custom-header">
+    <div ref="headerRef" class="custom-header">
       <div class="title-row">
         <span class="title-text">{{ t("trash.title") }}</span>
         <div
@@ -21,7 +21,7 @@
       class="trash-content"
     >
       <!-- 占位：撑开与 custom-header 等高的空间 -->
-      <div class="header-placeholder"></div>
+      <div class="header-placeholder" :style="placeholderStyle"></div>
 
       <!-- 下拉刷新 -->
       <ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
@@ -117,12 +117,14 @@ import MoveCategoryModal from "@/components/note/MoveCategoryModal.vue";
 import ActionSheet from "@/components/note/ActionSheet.vue";
 import { useActionSheet } from "@/composables/useActionSheet";
 import { useToast } from "@/composables/useToast";
+import { useFixedHeader } from "@/composables/useFixedHeader";
 import type { Note } from "@/types/note";
 
 const noteStore = useNoteStore();
 const trashStore = useTrashStore();
 const actionSheet = useActionSheet();
 const { showToast } = useToast();
+const { headerRef, placeholderStyle } = useFixedHeader();
 
 const { t } = useI18n();
 
@@ -204,6 +206,7 @@ const onTouchStart = (e: TouchEvent, note: Note) => {
   currentNote = note;
   longPressTimer = setTimeout(() => {
     longPressTriggered = true;
+    showActionSheet(currentNote!);
   }, 500);
 };
 
@@ -220,11 +223,6 @@ const onTouchMove = (e: TouchEvent) => {
 
 const onTouchEnd = () => {
   clearTimer();
-  if (longPressTriggered && currentNote) {
-    longPressTriggered = false;
-    showActionSheet(currentNote);
-    currentNote = null;
-  }
 };
 
 const onTouchCancel = () => {
@@ -439,14 +437,14 @@ const onMoveNoteCancel = () => {
   font-weight: 500;
 }
 
-/* 占位：撑开与 custom-header 等高的空间 */
+/* 占位：撑开与 custom-header 等高的空间；测量后会用真实值覆盖 */
 .header-placeholder {
   height: calc(48px + var(--z-safe-area-top));
 }
 
 /* 回收站列表 */
 .trash-list {
-  padding: 0 var(--z-space-md) var(--z-space-md);
+  padding: var(--z-space-sm) var(--z-space-md) var(--z-space-md);
   display: flex;
   flex-direction: column;
   gap: var(--z-space-sm);
@@ -454,6 +452,10 @@ const onMoveNoteCancel = () => {
 
 /* 回收站卡片 */
 .trash-card {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
   background: var(--z-bg-surface);
   border-radius: var(--z-radius-md);
   padding: var(--z-space-md);

@@ -1,7 +1,7 @@
 <template>
   <ion-page>
     <!-- 自定义固定顶部栏（标题 + 搜索框） -->
-    <div class="custom-header">
+    <div ref="headerRef" class="custom-header">
       <div class="title-row">
         <span class="title-text">{{ t("shares.title") }}</span>
       </div>
@@ -20,7 +20,7 @@
       class="share-content"
     >
       <!-- 占位：撑开与 custom-header 等高的空间 -->
-      <div class="header-placeholder"></div>
+      <div class="header-placeholder" :style="placeholderStyle"></div>
 
       <!-- 下拉刷新 -->
       <ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
@@ -117,8 +117,10 @@ import type { ShareItem } from "@/types/note";
 import ActionSheet from "@/components/note/ActionSheet.vue";
 import { useActionSheet } from "@/composables/useActionSheet";
 import { useToast } from "@/composables/useToast";
+import { useFixedHeader } from "@/composables/useFixedHeader";
 
 const { t } = useI18n();
+const { headerRef, placeholderStyle } = useFixedHeader();
 const actionSheet = useActionSheet();
 const shareStore = useShareStore();
 
@@ -204,6 +206,7 @@ const onTouchStart = (e: TouchEvent, share: ShareItem) => {
   currentShare = share;
   longPressTimer = setTimeout(() => {
     longPressTriggered = true;
+    showActionSheet(currentShare!);
   }, 500);
 };
 
@@ -220,11 +223,6 @@ const onTouchMove = (e: TouchEvent) => {
 
 const onTouchEnd = () => {
   clearTimer();
-  if (longPressTriggered && currentShare) {
-    longPressTriggered = false;
-    showActionSheet(currentShare);
-    currentShare = null;
-  }
 };
 
 const onTouchCancel = () => {
@@ -352,7 +350,7 @@ const { showToast } = useToast();
 
 /* 搜索框容器 */
 .search-wrap {
-  padding: var(--z-space-sm) var(--z-space-md) var(--z-space-sm);
+  padding: 0 var(--z-space-md) var(--z-space-sm);
 }
 
 .share-searchbar {
@@ -364,7 +362,8 @@ const { showToast } = useToast();
 
 /* 占位：撑开与 custom-header 等高的空间 */
 .header-placeholder {
-  height: calc(48px + 56px + var(--z-safe-area-top));
+  /* 标题行 48px + 搜索框区 + 安全区顶部；测量后会用真实值覆盖 */
+  height: calc(48px + 58px + var(--z-safe-area-top));
 }
 
 /* 分享列表 */
@@ -377,6 +376,10 @@ const { showToast } = useToast();
 
 /* 分享卡片 */
 .share-card {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
   background: var(--z-bg-surface);
   border-radius: var(--z-radius-md);
   padding: var(--z-space-md);

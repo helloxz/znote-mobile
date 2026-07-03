@@ -9,7 +9,7 @@
     </ion-menu>
 
     <!-- 自定义顶部栏（不用 ion-header/ion-toolbar，避免其伪元素阴影） -->
-    <div class="custom-header">
+    <div ref="headerRef" class="custom-header">
       <!-- 标题行：左汉堡菜单 + 中标题 + 右设置 -->
       <div class="title-row">
         <button class="icon-btn" @click="openMenu">
@@ -36,7 +36,7 @@
       class="note-content"
     >
       <!-- 占位：撑开与 custom-header 等高的空间，避免内容被 fixed header 遮挡 -->
-      <div class="header-placeholder"></div>
+      <div class="header-placeholder" :style="placeholderStyle"></div>
 
       <!-- 下拉刷新：保持为 ion-content 直接子元素，避免 iOS PWA 下 slot/flex 组合裁切首个卡片 -->
       <ion-refresher slot="fixed" @ionRefresh="onRefresh($event)">
@@ -189,8 +189,10 @@ import NoteSnapshotCard from "@/components/note/NoteSnapshotCard.vue";
 import { useActionSheet } from "@/composables/useActionSheet";
 import { useToast } from "@/composables/useToast";
 import { useNoteImageShare } from "@/composables/useNoteImageShare";
+import { useFixedHeader } from "@/composables/useFixedHeader";
 
 const router = useRouter();
+const { headerRef, placeholderStyle } = useFixedHeader();
 const { t } = useI18n();
 const userStore = useUserStore();
 const noteStore = useNoteStore();
@@ -542,7 +544,7 @@ const onMoveNoteCancel = () => {
 
 /* 搜索框容器：左右 padding 与笔记列表对齐 */
 .search-wrap {
-  padding: var(--z-space-sm) var(--z-space-md) var(--z-space-sm);
+  padding: 0 var(--z-space-md) var(--z-space-sm);
 }
 
 .note-searchbar {
@@ -554,8 +556,8 @@ const onMoveNoteCancel = () => {
 
 /* 占位：撑开与 custom-header 等高的空间，避免内容被 fixed header 遮挡 */
 .header-placeholder {
-  /* 标题行 48px + 搜索框区约 56px + 安全区顶部 */
-  height: calc(48px + 56px + var(--z-safe-area-top));
+  /* 标题行 48px + 搜索框区 + 安全区顶部；测量后会用真实值覆盖 */
+  height: calc(48px + 58px + var(--z-safe-area-top));
 }
 
 /* 笔记列表 */
