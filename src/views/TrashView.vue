@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   IonPage,
@@ -118,13 +118,14 @@ import ActionSheet from "@/components/note/ActionSheet.vue";
 import { useActionSheet } from "@/composables/useActionSheet";
 import { useToast } from "@/composables/useToast";
 import { useFixedHeader } from "@/composables/useFixedHeader";
+import { restoreAppScroll } from "@/composables/useOverlayRestore";
 import type { Note } from "@/types/note";
 
 const noteStore = useNoteStore();
 const trashStore = useTrashStore();
 const actionSheet = useActionSheet();
 const { showToast } = useToast();
-const { headerRef, placeholderStyle } = useFixedHeader();
+const { headerRef, placeholderStyle, remeasure } = useFixedHeader();
 
 const { t } = useI18n();
 
@@ -172,6 +173,8 @@ onMounted(() => {
 
 /** Tab 切换时按需刷新：仅在列表被标记为脏时（如刚移入回收站）才重新请求 */
 onIonViewWillEnter(() => {
+  // 切回时重新测量 header，防止 overlay 残留导致占位高度失效
+  nextTick(() => requestAnimationFrame(remeasure));
   if (trashStore.consumeDirty()) {
     loadTrashNotes();
   }
@@ -293,6 +296,7 @@ const handlePermanentDelete = async (note: Note) => {
   });
   await alert.present();
   const { role } = await alert.onDidDismiss();
+  restoreAppScroll();
 
   if (role === "confirm") {
     const res = await permanentDeleteNote(note.id);
@@ -329,6 +333,7 @@ const handleEmptyTrash = async () => {
   });
   await alert.present();
   const { role } = await alert.onDidDismiss();
+  restoreAppScroll();
 
   if (role !== "confirm") return;
 

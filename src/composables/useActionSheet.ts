@@ -1,4 +1,5 @@
 import { ref } from "vue";
+import { restoreAppScroll } from "@/composables/useOverlayRestore";
 import type { ActionSheetButton } from "@/components/note/ActionSheet.vue";
 
 export interface ActionSheetOptions {
@@ -67,53 +68,14 @@ export function useActionSheet() {
   };
 
   /**
-   * 强制清理 Ionic overlay dismiss 后可能残留的滚动锁。
+   * 强制清理 Ionic overlay dismiss 后可能残留的滚动锁/布局状态。
    *
-   * 根因（@ionic/core 8.8 源码确认）：
-   * actionSheet present 时给 document.body 加 class "backdrop-no-scroll"，
-   * 对应 CSS `body.backdrop-no-scroll{overflow:hidden}`。dismiss 时只有当
-   * "当前 overlay 是最后一个锁根 overlay"才 remove 该 class；长按手势在 touch
-   * 序列中途弹 overlay 的场景容易触发条件不满足，导致 class 残留 → body 永远
-   * overflow:hidden → 笔记列表无法滚动。
-   *
-   * 此函数作为安全兜底，确保 Ionic 内部 cleanup 先执行后再清理残留。
+   * 根因：Ionic overlay present 时会给 body 加 "backdrop-no-scroll" 等临时样式，
+   * dismiss 时偶尔清理不彻底（特别是在 iOS PWA + touch 序列中途弹 overlay 的场景），
+   * 导致后续页面滚动或 fixed header 占位计算出错。此处调用公共恢复函数兜底。
    */
   const restoreScroll = () => {
-    requestAnimationFrame(() => {
-      // 1. body 上的 backdrop-no-scroll（最关键，actionSheet 的真正锁）
-      document.body.classList.remove("backdrop-no-scroll");
-      document.body.style.removeProperty("overflow");
-
-      // 2. view container 的 aria-hidden（present 时 setRootAriaHidden(true) 的残留）
-      const appRoot = document.querySelector("ion-app") || document.body;
-      const viewContainer = appRoot.querySelector(
-        "ion-router-outlet, #ion-view-container-root"
-      );
-      if (viewContainer) {
-        viewContainer.removeAttribute("aria-hidden");
-        viewContainer.removeAttribute("inert");
-      }
-
-      // 3. ion-content scrollEl 的 inline overflow（保险清理）
-      const ionContentEl = document.querySelector("ion-content") as
-        | (HTMLElement & { getScrollElement?: () => Promise<HTMLElement> })
-        | null;
-      void ionContentEl?.getScrollElement?.().then((scrollEl) => {
-        scrollEl.style.removeProperty("overflow");
-        scrollEl.style.removeProperty("overflow-y");
-        scrollEl.style.removeProperty("touch-action");
-        scrollEl.style.removeProperty("pointer-events");
-      });
-
-      // 触发重排，恢复 iOS 的滚动惯性
-      window.dispatchEvent(new Event("resize"));
-    });
-
-    // 二次兜底：100ms 后再清理一次，防止 Ionic 异步重新加锁
-    setTimeout(() => {
-      document.body.classList.remove("backdrop-no-scroll");
-      document.body.style.removeProperty("overflow");
-    }, 100);
+    restoreAppScroll();
   };
 
   return {

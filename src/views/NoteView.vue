@@ -154,7 +154,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, onUnmounted } from "vue";
+import { ref, computed, onMounted, watch, onUnmounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import {
@@ -167,6 +167,7 @@ import {
   IonRefresher,
   IonRefresherContent,
   menuController,
+  onIonViewWillEnter,
 } from "@ionic/vue";
 import { VueDraggable } from "vue-draggable-plus";
 import {
@@ -192,7 +193,7 @@ import { useNoteImageShare } from "@/composables/useNoteImageShare";
 import { useFixedHeader } from "@/composables/useFixedHeader";
 
 const router = useRouter();
-const { headerRef, placeholderStyle } = useFixedHeader();
+const { headerRef, placeholderStyle, remeasure } = useFixedHeader();
 const { t } = useI18n();
 const userStore = useUserStore();
 const noteStore = useNoteStore();
@@ -207,6 +208,11 @@ const keyword = ref("");
 // 首屏加载笔记本树
 onMounted(() => {
   noteStore.loadNotebookTree().catch(() => {});
+});
+
+/** Tab 切换回来时重新测量 header，防止 overlay 残留导致占位高度失效 */
+onIonViewWillEnter(() => {
+  nextTick(() => requestAnimationFrame(remeasure));
 });
 
 // ========== 搜索：输入达 3 字符自动搜索，清空恢复原列表 ==========

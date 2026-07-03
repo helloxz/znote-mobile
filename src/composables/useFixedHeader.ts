@@ -17,7 +17,7 @@ export function useFixedHeader() {
   // 初始 undefined：首屏使用 CSS fallback，测量后再用真实值覆盖
   const headerHeight = ref<number>();
 
-  const update = () => {
+  const remeasure = () => {
     if (headerRef.value) {
       headerHeight.value = headerRef.value.offsetHeight;
     }
@@ -26,13 +26,13 @@ export function useFixedHeader() {
   onMounted(() => {
     // 等当前帧 DOM 稳定后再测，避免首屏拿到 0 或不准确
     nextTick(() => {
-      requestAnimationFrame(() => requestAnimationFrame(update));
+      requestAnimationFrame(() => requestAnimationFrame(remeasure));
     });
-    window.addEventListener("resize", update);
+    window.addEventListener("resize", remeasure);
   });
 
   onUnmounted(() => {
-    window.removeEventListener("resize", update);
+    window.removeEventListener("resize", remeasure);
   });
 
   const placeholderStyle = computed(() => {
@@ -41,5 +41,5 @@ export function useFixedHeader() {
     return h != null && h > 0 ? { height: `${h}px` } : undefined;
   });
 
-  return { headerRef, headerHeight, placeholderStyle };
+  return { headerRef, headerHeight, placeholderStyle, remeasure };
 }

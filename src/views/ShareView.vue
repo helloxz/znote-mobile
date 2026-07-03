@@ -96,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   IonPage,
@@ -118,9 +118,10 @@ import ActionSheet from "@/components/note/ActionSheet.vue";
 import { useActionSheet } from "@/composables/useActionSheet";
 import { useToast } from "@/composables/useToast";
 import { useFixedHeader } from "@/composables/useFixedHeader";
+import { restoreAppScroll } from "@/composables/useOverlayRestore";
 
 const { t } = useI18n();
-const { headerRef, placeholderStyle } = useFixedHeader();
+const { headerRef, placeholderStyle, remeasure } = useFixedHeader();
 const actionSheet = useActionSheet();
 const shareStore = useShareStore();
 
@@ -172,6 +173,8 @@ onMounted(() => {
 
 /** Tab 切换时按需刷新：仅在列表被标记为脏时（如刚创建了分享）才重新请求 */
 onIonViewWillEnter(() => {
+  // 切回时重新测量 header，防止 overlay 残留导致占位高度失效
+  nextTick(() => requestAnimationFrame(remeasure));
   if (shareStore.consumeDirty()) {
     loadShares();
   }
@@ -301,6 +304,7 @@ const handleDelete = async (share: ShareItem) => {
   });
   await alert.present();
   const { role } = await alert.onDidDismiss();
+  restoreAppScroll();
 
   if (role === "confirm") {
     const ok = await deleteShare(share.id);
