@@ -36,9 +36,12 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { IonIcon } from "@ionic/vue";
 import { reorderTwo, timeOutline, folderOutline } from "ionicons/icons";
 import type { Note } from "@/types/note";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   note: Note;
@@ -53,10 +56,10 @@ const emit = defineEmits<{
   (e: "contextmenu", note: Note): void;
 }>();
 
-/** 摘要：去 markdown 标记，取前两行非空，截断 80 字 */
+/** 摘要：去 markdown 标记，取前两行非空，截断 80 字；内容为空时显示占位文字 */
 const summary = computed(() => {
   const content = props.note.content || "";
-  if (!content) return "";
+  if (!content) return t("note.emptyContent");
   const plain = content
     .replace(/^#+\s*/gm, "")
     .replace(/[*_`~]/g, "")

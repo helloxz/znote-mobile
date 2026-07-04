@@ -18,11 +18,13 @@ export default {
     "note.switchNotebook": "Switch notebook",
     "note.categories": "Note Categories",
     "note.empty": "No content yet",
+    "note.emptyContent": "Empty note",
     "note.loading": "Loading...",
     "note.untitled": "Untitled",
     // Search
     "note.search.empty": "No notes found",
     // Note list actions
+    "note.list.edit": "Edit",
     "note.list.pin": "Pin",
     "note.list.unpin": "Unpin",
     "note.list.share": "Share Link",

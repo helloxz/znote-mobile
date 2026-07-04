@@ -146,6 +146,49 @@ body {
 }
 
 /* ============================================================
+ * GPU 硬件加速（合成层优化）
+ *
+ * 原理：WebView 渲染分 Layout → Paint → Composite 三个阶段。
+ * 将频繁变化的元素提升到独立合成层（GPU 纹理），由合成器线程
+ * 处理滚动/动画，避免触发主线程的 Layout/Paint，大幅提升帧率。
+ *
+ * ⚠️ will-change 会预分配 GPU 内存，仅用于明确即将动画的元素；
+ * translateZ(0) 更轻量，适用于长期存在的滚动容器。
+ * ============================================================ */
+
+/* 滚动容器：提升为独立合成层，滚动时 GPU 直接合成，不触发重绘 */
+ion-content::part(scroll) {
+  transform: translateZ(0);
+}
+
+/* 列表项：contain 告诉浏览器该元素内部变化不影响外部布局，
+ * 滚动时浏览器可以跳过对该元素的重排计算 */
+.note-card {
+  contain: layout style;
+}
+
+/* 固定定位元素：独立合成层，避免滚动时连带重绘 */
+.custom-header {
+  transform: translateZ(0);
+}
+
+/* 悬浮按钮：提前告知浏览器即将做 scale 动画，避免动画首帧卡顿 */
+.fab-create {
+  will-change: transform;
+}
+
+/* 底部滑出面板：即将做 translateY 动画，提前创建合成层 */
+.action-sheet,
+.settings-sheet {
+  will-change: transform;
+}
+
+/* 侧边栏滚动容器：与主内容区滚动同理 */
+.menu-scroll {
+  transform: translateZ(0);
+}
+
+/* ============================================================
  * 下拉刷新图标修复
  * 背景：ion-refresher 默认 z-index:-1（藏内容下方），且容器固定
  * 60px 高从屏幕顶部向下排布。当页面 header 较高（如笔记页/分享页

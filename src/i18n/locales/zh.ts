@@ -18,11 +18,13 @@ export default {
     "note.switchNotebook": "切换笔记本",
     "note.categories": "笔记分类",
     "note.empty": "暂无内容",
+    "note.emptyContent": "尚无笔记内容",
     "note.loading": "加载中...",
     "note.untitled": "无标题",
     // 搜索
     "note.search.empty": "未找到相关笔记",
     // 笔记列表操作菜单
+    "note.list.edit": "编辑",
     "note.list.pin": "置顶",
     "note.list.unpin": "取消置顶",
     "note.list.share": "链接分享",

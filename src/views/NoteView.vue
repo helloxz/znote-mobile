@@ -70,6 +70,7 @@
             <NoteListItem
               v-for="note in localNotes"
               :key="note.id"
+              v-memo="[note.id, note.updated_at, note.title, note.content, note.is_pinned]"
               :note="note"
               :draggable="note.is_pinned !== 1 && !noteStore.searchMode"
               :notebook-title="noteStore.searchMode ? notebookTitleMap[note.notebook_id] : undefined"
@@ -381,7 +382,7 @@ const onNoteSelect = (note: Note) => {
   router.push(`/note/${note.id}`);
 };
 
-/** 创建新笔记：自动创建默认笔记后跳转编辑页 */
+/** 创建新笔记：自动创建默认笔记，新笔记出现在列表顶部 */
 const onCreateNote = async () => {
   // 未选中分类或搜索模式下不响应
   if (!noteStore.activeCategoryId || noteStore.searchMode) return;
@@ -392,8 +393,7 @@ const onCreateNote = async () => {
     content: "",
   });
   if (note) {
-    // 创建成功，跳转到编辑页面（edit=true 直接进入编辑态）
-    router.push(`/note/${note.id}?edit=true`);
+    // 创建成功，笔记已自动出现在列表顶部，无需跳转
   } else {
     await showToast(t("unknown"), "danger");
   }
@@ -408,6 +408,10 @@ const onNoteContextMenu = async (note: Note) => {
       {
         text: isPinned ? t("note.list.unpin") : t("note.list.pin"),
         role: "pin",
+      },
+      {
+        text: t("note.list.edit"),
+        role: "edit",
       },
       {
         text: t("note.list.share"),
@@ -438,6 +442,9 @@ const onNoteContextMenu = async (note: Note) => {
         : t("unknown"),
       ok ? "success" : "danger"
     );
+  } else if (role === "edit") {
+    // 延迟 200ms 进入编辑模式，等待 ActionSheet 关闭动画完成
+    router.push(`/note/${note.id}?edit=true`);
   } else if (role === "trash") {
     // 移入回收站：软删除，store 更新后列表自动刷新
     const ok = await noteStore.deleteNote(note.id);
