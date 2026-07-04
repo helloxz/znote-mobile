@@ -162,6 +162,7 @@ import {
   onIonViewWillEnter,
 } from "@ionic/vue";
 import { VueDraggable } from "vue-draggable-plus";
+import { Capacitor } from "@capacitor/core";
 import {
   menuOutline,
   cogOutline,
@@ -402,10 +403,11 @@ const onNoteContextMenu = async (note: Note) => {
         text: t("note.list.share"),
         role: "share",
       },
-      {
+      // 仅原生 APP 支持图片分享（PWA 下隐藏）
+      ...(Capacitor.isNativePlatform() ? [{
         text: t("note.list.shareImage"),
         role: "share-image",
-      },
+      }] : []),
       {
         text: t("note.list.move"),
         role: "move",
