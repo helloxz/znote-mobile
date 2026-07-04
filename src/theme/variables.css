@@ -211,3 +211,15 @@ ion-refresher .refresher-pulling-icon,
 ion-refresher .refresher-refreshing-icon {
   margin-top: 200px !important;
 }
+
+/* ============================================================
+ * 侧边栏层级修复
+ * 背景：ion-menu 渲染在 ion-page 内部，而 ion-tab-bar 在
+ * ion-tabs 层级，Ionic 默认 tab-bar z-index 较高，
+ * 导致菜单打开时 tab-bar 显示在菜单遮罩之上。
+ * 修复：将 ion-menu 提升到 tab-bar 之上，与主流 APP 行为一致
+ * （菜单打开时整个页面被遮罩覆盖，不允许操作 tab-bar）。
+ * ============================================================ */
+ion-menu {
+  z-index: 100 !important;
+}

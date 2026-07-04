@@ -1,13 +1,5 @@
 <template>
   <ion-page>
-    <!-- 左侧侧边栏（汉堡菜单触发） -->
-    <!-- 内部用普通 div 自滚动，不用 ion-content，避免 overlay dismiss 后滚动锁不释放 -->
-    <ion-menu menu-id="note-menu" content-id="note-content" side="start">
-      <div class="menu-scroll">
-        <SidebarMenu @select="onCategorySelected" />
-      </div>
-    </ion-menu>
-
     <!-- 自定义顶部栏（不用 ion-header/ion-toolbar，避免其伪元素阴影） -->
     <div ref="headerRef" class="custom-header">
       <!-- 标题行：左汉堡菜单 + 中标题 + 右设置 -->
@@ -164,7 +156,6 @@ import {
   IonContent,
   IonSearchbar,
   IonSkeletonText,
-  IonMenu,
   IonRefresher,
   IonRefresherContent,
   menuController,
@@ -181,7 +172,6 @@ import { useUserStore } from "@/stores/user";
 import { useNoteStore } from "@/stores/note";
 import { useTrashStore } from "@/stores/trash";
 import type { Note } from "@/types/note";
-import SidebarMenu from "@/components/note/SidebarMenu.vue";
 import SettingsSheet from "@/components/note/SettingsSheet.vue";
 import NoteListItem from "@/components/note/NoteListItem.vue";
 import ActionSheet from "@/components/note/ActionSheet.vue";
@@ -296,11 +286,6 @@ const pageTitle = computed(() => {
 /** 打开侧边栏 */
 const openMenu = () => {
   void menuController.open("note-menu");
-};
-
-/** 选中分类后：关闭侧边栏 */
-const onCategorySelected = () => {
-  void menuController.close("note-menu");
 };
 
 // 设置面板显隐
@@ -494,14 +479,6 @@ const onMoveNoteCancel = () => {
 </script>
 
 <style scoped>
-/* 侧边栏滚动容器：普通 div 自滚动，避开 Ionic 滚动锁机制 */
-.menu-scroll {
-  height: 100%;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
-  background: var(--z-bg-page);
-}
-
 /* 内容区背景 */
 .note-content {
   --background: var(--z-bg-page);
