@@ -65,6 +65,9 @@
           <div v-if="note.updated_at" class="update-time">
             <ion-icon :icon="timeOutline" class="time-icon" />
             <span>{{ formatTime(note.updated_at) }}</span>
+            <button class="share-btn" @click="onShare">
+              <ion-icon :icon="shareOutline" />
+            </button>
           </div>
 
           <MarkdownViewer :content="previewContent" class="viewer-area" />
@@ -102,6 +105,15 @@
         />
       </div>
     </template>
+
+    <!-- 创建分享弹窗 -->
+    <CreateShareModal
+      :show="showCreateShareModal"
+      :note-id="shareNoteId"
+      :note-title="shareNoteTitle"
+      @cancel="showCreateShareModal = false"
+      @update:show="showCreateShareModal = $event"
+    />
   </ion-page>
 </template>
 
@@ -129,6 +141,7 @@ import {
   readerOutline,
   saveOutline,
   timeOutline,
+  shareOutline,
 } from "ionicons/icons";
 import { useNoteStore } from "@/stores/note";
 import { fetchNoteById } from "@/api/notebook";
@@ -136,6 +149,7 @@ import type { Note } from "@/types/note";
 import type { ApiResponse } from "@/api/user";
 import MarkdownViewer from "@/components/note/MarkdownViewer.vue";
 import MarkdownEditor from "@/components/note/MarkdownEditorBytemd.vue";
+import CreateShareModal from "@/components/note/CreateShareModal.vue";
 import { getServerUrl } from "@/services/storage";
 import { useToast } from "@/composables/useToast";
 import { prependImageDomain } from "@/utils/markdownImage";
@@ -250,6 +264,19 @@ const saveNote = async (): Promise<boolean> => {
 };
 
 const { showToast } = useToast();
+
+// ========== 分享弹窗 ==========
+const showCreateShareModal = ref(false);
+const shareNoteId = ref(0);
+const shareNoteTitle = ref("");
+
+/** 点击分享按钮：打开创建分享弹窗 */
+const onShare = () => {
+  if (!note.value) return;
+  shareNoteId.value = note.value.id;
+  shareNoteTitle.value = note.value.title || t("note.untitled");
+  showCreateShareModal.value = true;
+};
 
 /** 监听键盘弹出：通过 visualViewport 动态设置 --kb-height CSS 变量 */
 let kbCleanup: (() => void) | null = null;
@@ -407,6 +434,20 @@ onUnmounted(() => {
 .time-icon {
   font-size: 14px;
   flex-shrink: 0;
+}
+.share-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--z-primary);
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+.share-btn:active {
+  opacity: 0.6;
 }
 
 .viewer-area {
