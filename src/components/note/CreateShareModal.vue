@@ -112,6 +112,7 @@ import { checkmarkCircleOutline, copyOutline } from "ionicons/icons";
 import { useI18n } from "vue-i18n";
 import { createShare } from "@/api/share";
 import { useShareStore } from "@/stores/share";
+import { getServerUrl } from "@/services/storage";
 
 const { t } = useI18n();
 const shareStore = useShareStore();
@@ -177,7 +178,7 @@ const onConfirm = async () => {
     });
     if (result) {
       created.value = true;
-      shareLink.value = `${window.location.origin}/s/${result.share_id}`;
+      shareLink.value = `${getServerUrl()}/s/${result.share_id}`;
       sharePassword.value = result.password || "";
       // 标记分享列表已变更，切回【我的分享】时刷新一次
       shareStore.markDirty();
