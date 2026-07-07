@@ -91,6 +91,15 @@
       <ion-icon :icon="addOutline" />
     </button>
 
+    <!-- 悬浮 AI 按钮：始终显示，位于添加按钮下方，避免添加按钮消失导致按钮跳动 -->
+    <button
+      class="fab-ai"
+      :title="t('note.ai.button')"
+      @click="goAI"
+    >
+      <ion-icon :icon="sparklesOutline" />
+    </button>
+
     <!-- 移动笔记弹窗 -->
     <MoveCategoryModal
       :show="showMoveNoteModal"
@@ -168,6 +177,7 @@ import {
   cogOutline,
   documentsOutline,
   addOutline,
+  sparklesOutline,
 } from "ionicons/icons";
 import { useUserStore } from "@/stores/user";
 import { useNoteStore } from "@/stores/note";
@@ -287,6 +297,11 @@ const pageTitle = computed(() => {
 /** 打开侧边栏 */
 const openMenu = () => {
   void menuController.open("note-menu");
+};
+
+/** 跳转 AI 对话页 */
+const goAI = () => {
+  router.push("/ai");
 };
 
 // 设置面板显隐
@@ -642,18 +657,16 @@ const onMoveNoteCancel = () => {
   color: var(--z-text-tertiary);
 }
 
-/* 悬浮新建笔记按钮 */
-.fab-create {
+/* 悬浮按钮通用样式：44x44px，右下角固定定位 */
+.fab-create,
+.fab-ai {
   position: fixed;
-  bottom: calc(24px + env(safe-area-inset-bottom));
   right: 20px;
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: var(--ion-color-primary);
-  color: white;
   border: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -662,11 +675,31 @@ const onMoveNoteCancel = () => {
   transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
 }
 
-.fab-create ion-icon {
-  font-size: 24px;
+.fab-create ion-icon,
+.fab-ai ion-icon {
+  font-size: 20px;
+}
+
+/* 悬浮新建笔记按钮：位于 AI 按钮上方，避免与 AI 按钮重叠 */
+.fab-create {
+  bottom: calc(78px + env(safe-area-inset-bottom));
+  background: var(--ion-color-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .fab-create:active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 悬浮 AI 按钮：始终显示，位于最下方，避免添加按钮消失导致按钮跳动 */
+.fab-ai {
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  background: var(--z-primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.fab-ai:active {
   transform: scale(0.92);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }

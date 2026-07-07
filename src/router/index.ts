@@ -43,6 +43,11 @@ const routes: Array<RouteRecordRaw> = [
     // 关于页：顶层路由（不在 TabsPage children 内），底部 Tab 栏自动隐藏
     path: '/about',
     component: () => import('@/views/AboutPage.vue')
+  },
+  {
+    // AI 对话页：顶层路由（不在 TabsPage children 内），底部 Tab 栏自动隐藏
+    path: '/ai',
+    component: () => import('@/views/AIView.vue')
   }
 ]
 
