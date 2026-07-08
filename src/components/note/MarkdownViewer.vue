@@ -33,7 +33,21 @@ const codeTheme = {
   <!-- 包一层 doc-content 容器：承载 incremark 渲染后的 DOM 与排版样式 -->
   <div class="doc-content">
     <ThemeProvider :theme="codeTheme">
-      <IncremarkContent :content="content" :is-finished="true" />
+      <IncremarkContent
+        :content="content"
+        :is-finished="true"
+        :incremark-options="{
+          htmlTree: {
+            tagBlacklist: [
+              'script', 'style', 'object', 'embed',
+              'form', 'input', 'button', 'textarea',
+              'select', 'meta', 'link', 'base',
+              'frame', 'frameset', 'applet',
+              'noscript', 'template'
+            ]
+          }
+        }"
+      />
     </ThemeProvider>
   </div>
 </template>
