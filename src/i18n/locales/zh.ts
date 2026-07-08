@@ -160,6 +160,7 @@ export default {
     "shares.copy.success": "已复制到剪贴板",
     "shares.status.active": "有效",
     "shares.status.revoked": "已撤销",
+    "shares.status.expired": "失效",
     "shares.result.url": "访问地址",
     "shares.result.password": "密码",
 

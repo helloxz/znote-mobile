@@ -159,6 +159,7 @@ export default {
     "shares.copy.success": "Copied to clipboard",
     "shares.status.active": "Active",
     "shares.status.revoked": "Revoked",
+    "shares.status.expired": "Expired",
     "shares.result.url": "URL",
     "shares.result.password": "Password",
 

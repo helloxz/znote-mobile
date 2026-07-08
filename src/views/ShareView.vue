@@ -62,9 +62,9 @@
             <div class="card-meta">
               <span
                 class="status-badge"
-                :class="share.status === 'active' ? 'status-active' : 'status-revoked'"
+                :class="isExpired(share) ? 'status-expired' : share.status === 'active' ? 'status-active' : 'status-revoked'"
               >
-                {{ share.status === 'active' ? t('shares.status.active') : t('shares.status.revoked') }}
+                {{ isExpired(share) ? t('shares.status.expired') : share.status === 'active' ? t('shares.status.active') : t('shares.status.revoked') }}
               </span>
               <span class="meta-sep">·</span>
               <span class="card-date">
@@ -148,6 +148,15 @@ const formatDate = (ts: number | string | null): string => {
   const d = new Date(ms);
   if (Number.isNaN(d.getTime())) return "";
   return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+};
+
+/** 判断分享是否已过期：expires_at 存在且早于当前时间 */
+const isExpired = (share: ShareItem): boolean => {
+  if (!share.expires_at) return false;
+  const ms = typeof share.expires_at === "number" && share.expires_at < 1e12
+    ? share.expires_at * 1000
+    : share.expires_at;
+  return new Date(ms).getTime() < Date.now();
 };
 
 /** 点击标题：在系统浏览器中打开分享页面 */
@@ -430,6 +439,11 @@ const { showToast } = useToast();
 .status-revoked {
   background: var(--z-bg-subtle);
   color: var(--z-text-disabled);
+}
+
+.status-expired {
+  background: #fde8e8;
+  color: #e53e3e;
 }
 
 .meta-sep {
