@@ -33,6 +33,9 @@ export interface Note {
     sort_order: number;
     created_at: number | string;
     updated_at: number | string;
+    allow_vectorize: number; // 0/1，是否允许 AI 向量化
+    is_vectorized: number; // 向量化状态：0=待处理 1=已完成 2=跳过(超长) 3=失败
+    vectorized_at?: number | string | null; // 向量化完成时间
 }
 
 /** 分享列表项（与后端 GET /api/user/note/share/list 返回结构对齐） */

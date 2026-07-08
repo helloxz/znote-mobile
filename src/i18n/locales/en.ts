@@ -42,6 +42,18 @@ export default {
     "note.list.sort.failed": "Sort failed, please retry",
     "note.list.trash.success": "Moved to trash",
     "note.list.feature.comingSoon": "Feature coming soon",
+    // Vectorize actions
+    "note.list.disable_vectorize": "Disable Vectorize",
+    "note.list.enable_vectorize": "Enable Vectorize",
+    "note.list.disable_vectorize.success": "Vectorization disabled",
+    "note.list.enable_vectorize.success": "Vectorization enabled",
+    // Vectorize status
+    "note.vectorize.status.pending": "Pending",
+    "note.vectorize.status.completed": "Completed",
+    "note.vectorize.status.skipped": "Skipped (too long)",
+    "note.vectorize.status.failed": "Failed",
+    "note.vectorize.allowed": "Vectorization allowed",
+    "note.vectorize.disallowed": "Vectorization disallowed",
     // Settings menu
     "note.menu.changePassword": "Change Password",
     "note.menu.about": "About",

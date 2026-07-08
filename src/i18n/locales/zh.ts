@@ -42,6 +42,18 @@ export default {
     "note.list.sort.failed": "排序失败，请重试",
     "note.list.trash.success": "已移入回收站",
     "note.list.feature.comingSoon": "功能开发中",
+    // 向量化操作
+    "note.list.disable_vectorize": "不要向量",
+    "note.list.enable_vectorize": "保持向量",
+    "note.list.disable_vectorize.success": "已关闭向量化",
+    "note.list.enable_vectorize.success": "已开启向量化",
+    // 向量化状态
+    "note.vectorize.status.pending": "待处理",
+    "note.vectorize.status.completed": "已完成",
+    "note.vectorize.status.skipped": "已跳过（内容过长）",
+    "note.vectorize.status.failed": "向量化失败",
+    "note.vectorize.allowed": "已允许向量化",
+    "note.vectorize.disallowed": "已禁止向量化",
     // 设置菜单项
     "note.menu.changePassword": "修改密码",
     "note.menu.about": "关于",

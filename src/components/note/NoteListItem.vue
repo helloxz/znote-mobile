@@ -29,6 +29,21 @@
           <ion-icon :icon="folderOutline" class="category-icon" />
           <span>{{ notebookTitle }}</span>
         </span>
+        <!-- 向量化状态：右侧对齐 -->
+        <span class="vector-badges">
+          <ion-icon
+            :icon="allowVectorize ? hardwareChipOutline : hardwareChip"
+            class="vector-icon"
+            :style="{ color: allowVectorize ? '#22c55e' : '#cbd5e1' }"
+            :title="allowVectorize ? t('note.vectorize.allowed') : t('note.vectorize.disallowed')"
+          />
+          <ion-icon
+            :icon="vectorizeStatus.icon"
+            class="vector-icon"
+            :style="{ color: vectorizeStatus.color }"
+            :title="vectorizeStatus.label + (vectorizeTime ? ' · ' + vectorizeTime : '')"
+          />
+        </span>
       </div>
     </div>
   </div>
@@ -38,7 +53,17 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { IonIcon } from "@ionic/vue";
-import { reorderTwo, timeOutline, folderOutline } from "ionicons/icons";
+import {
+  reorderTwo,
+  timeOutline,
+  folderOutline,
+  hardwareChipOutline,
+  hardwareChip,
+  checkmarkCircle,
+  closeCircle,
+  timerOutline,
+  arrowForwardCircle,
+} from "ionicons/icons";
 import type { Note } from "@/types/note";
 
 const { t } = useI18n();
@@ -84,6 +109,35 @@ const formattedTime = computed(() => {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
+});
+
+/** 是否允许向量化 */
+const allowVectorize = computed(() => props.note.allow_vectorize === 1);
+
+/** 向量化状态配置：图标、颜色、标签 */
+const vectorizeStatus = computed(() => {
+  const status = props.note.is_vectorized;
+  switch (status) {
+    case 1: return { icon: checkmarkCircle, color: "#22c55e", label: t("note.vectorize.status.completed") };
+    case 2: return { icon: arrowForwardCircle, color: "#f59e0b", label: t("note.vectorize.status.skipped") };
+    case 3: return { icon: closeCircle, color: "#ef4444", label: t("note.vectorize.status.failed") };
+    default: return { icon: timerOutline, color: "#94a3b8", label: t("note.vectorize.status.pending") };
+  }
+});
+
+/** 向量化时间格式化：YYYY-MM-DD HH:mm */
+const vectorizeTime = computed(() => {
+  const t = props.note.vectorized_at;
+  if (!t) return "";
+  const ms = typeof t === "number" && t < 1e12 ? t * 1000 : t;
+  const d = new Date(ms);
+  if (Number.isNaN(d.getTime())) return "";
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
 });
 
 /** 点击：选中笔记（短按） */
@@ -263,5 +317,18 @@ const onContextMenu = () => {
 
 .category-icon {
   font-size: 14px;
+}
+
+/* 向量化状态徽标：右侧对齐 */
+.vector-badges {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vector-icon {
+  font-size: 14px;
+  flex-shrink: 0;
 }
 </style>

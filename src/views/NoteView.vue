@@ -61,7 +61,7 @@
             <NoteListItem
               v-for="note in localNotes"
               :key="note.id"
-              v-memo="[note.id, note.updated_at, note.title, note.content, note.is_pinned]"
+              v-memo="[note.id, note.updated_at, note.title, note.content, note.is_pinned, note.allow_vectorize, note.is_vectorized]"
               :note="note"
               :draggable="note.is_pinned !== 1 && !noteStore.searchMode"
               :notebook-title="noteStore.searchMode ? notebookTitleMap[note.notebook_id] : undefined"
@@ -402,6 +402,7 @@ const onCreateNote = async () => {
 /** 长按笔记：弹出底部操作面板 */
 const onNoteContextMenu = async (note: Note) => {
   const isPinned = note.is_pinned === 1;
+  const isVectorized = note.allow_vectorize === 1;
   const role = await actionSheet.showActionSheet({
     header: note.title || t("note.untitled"),
     buttons: [
@@ -425,6 +426,10 @@ const onNoteContextMenu = async (note: Note) => {
       {
         text: t("note.list.move"),
         role: "move",
+      },
+      {
+        text: isVectorized ? t("note.list.disable_vectorize") : t("note.list.enable_vectorize"),
+        role: "toggle_vectorize",
       },
       {
         text: t("note.list.trash"),
@@ -472,6 +477,16 @@ const onNoteContextMenu = async (note: Note) => {
     // 笔记转图片并唤起系统分享面板（微信/QQ 等）
     const res = await shareAsImage(note);
     await showToast(t(res.msg), res.ok ? "success" : "danger");
+  } else if (role === "toggle_vectorize") {
+    // 切换向量化开关：allow_vectorize 0/1 互转
+    const next = note.allow_vectorize === 1 ? 0 : 1;
+    const ok = await noteStore.updateNote(note.id, { allow_vectorize: next });
+    await showToast(
+      ok
+        ? t(next === 1 ? "note.list.enable_vectorize.success" : "note.list.disable_vectorize.success")
+        : t("unknown"),
+      ok ? "success" : "danger"
+    );
   }
 };
 
