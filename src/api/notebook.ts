@@ -113,6 +113,7 @@ export interface UpdateNotePayload {
     content?: string;
     is_pinned?: number;
     notebook_id?: number;
+    allow_vectorize?: number; // 0/1，是否允许向量化
 }
 
 /**
