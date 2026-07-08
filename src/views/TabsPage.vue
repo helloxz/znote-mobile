@@ -8,6 +8,9 @@
       </div>
     </ion-menu>
 
+    <!-- 隐藏的 ion-content：作为菜单拖拽手势的监听目标，始终存在于 DOM 中 -->
+    <ion-content id="note-content" class="menu-content-host" :aria-hidden="true" />
+
     <ion-tabs>
       <ion-router-outlet></ion-router-outlet>
       <ion-tab-bar slot="bottom">
@@ -40,6 +43,7 @@ import {
   IonPage,
   IonRouterOutlet,
   IonMenu,
+  IonContent,
   menuController,
 } from "@ionic/vue";
 import { documentTextOutline, shareOutline, trashOutline } from "ionicons/icons";
@@ -61,5 +65,18 @@ const onCategorySelected = () => {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
   background: var(--z-bg-page);
+}
+
+/* 隐藏的菜单 content 宿主：不显示、不占空间，仅作为拖拽手势监听目标 */
+.menu-content-host {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  --background: transparent;
 }
 </style>

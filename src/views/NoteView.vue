@@ -24,7 +24,6 @@
 
     <ion-content
       :fullscreen="true"
-      id="note-content"
       class="note-content"
     >
       <!-- 占位：撑开与 custom-header 等高的空间，避免内容被 fixed header 遮挡 -->
