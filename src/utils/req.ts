@@ -1,7 +1,11 @@
 import axios, { AxiosError } from "axios";
-import { getToken, getServerUrl } from "@/services/storage";
+import { getToken, getServerUrl, clearAll } from "@/services/storage";
 import { useToast } from "@/composables/useToast";
 import i18n from "@/i18n";
+import router from "@/router";
+
+/** 防止多个请求同时返回 401 时重复弹 toast + 跳转 */
+let isHandling401 = false;
 
 /**
  * axios 实例
@@ -34,26 +38,43 @@ req.interceptors.request.use((config) => {
 // 响应拦截器：统一捕获网络层异常，转成与后端一致的 { code, msg, data } 结构
 // 业务码（code: 200 / -1000）仍由各调用方判断
 req.interceptors.response.use(
-    (response) => response,
-    (error: AxiosError) => {
-        // 网络层错误统一转成后端响应格式，便于前端按 msg 翻译
-        let msg = "network.error";
-        if (error.code === "ECONNABORTED") {
-            msg = "network.timeout";
-        } else if (!error.response) {
-            // 无 response：断网 / DNS 失败 / 服务器地址不可达
-            msg = "network.disconnected";
-        }
-        // 弹出已翻译的网络错误提示，全局统一处理
-        const { showToast } = useToast();
-        showToast(i18n.global.t(msg));
+	(response) => response,
+	(error: AxiosError) => {
+		// HTTP 401：token 过期或无效，清除本地数据并跳转登录页
+		if (error.response?.status === 401 && !isHandling401) {
+			isHandling401 = true;
+			const { showToast } = useToast();
+			showToast(i18n.global.t("session.expired"));
+			// 清空本地存储 + 内存缓存（token / serverUrl / userInfo 等）
+			clearAll();
+			// 跳转到登录页，完成后重置标志位
+			router.replace("/login").finally(() => {
+				isHandling401 = false;
+			});
+			return Promise.reject({
+				code: -1000,
+				msg: "session.expired",
+				data: null,
+			});
+		}
+		// 网络层错误统一转成后端响应格式，便于前端按 msg 翻译
+		let msg = "network.error";
+		if (error.code === "ECONNABORTED") {
+			msg = "network.timeout";
+		} else if (!error.response) {
+			// 无 response：断网 / DNS 失败 / 服务器地址不可达
+			msg = "network.disconnected";
+		}
+		// 弹出已翻译的网络错误提示，全局统一处理
+		const { showToast } = useToast();
+		showToast(i18n.global.t(msg));
 
-        return Promise.reject({
-            code: -1000,
-            msg,
-            data: null,
-        });
-    }
+		return Promise.reject({
+			code: -1000,
+			msg,
+			data: null,
+		});
+	}
 );
 
 export default req;

@@ -7,6 +7,9 @@ const config: CapacitorConfig = {
   server: {
     cleartext: true   // 允许 HTTP 通信（Android 默认禁止明文流量）
   },
+  android: {
+    allowMixedContent: true  // 允许 WebView 加载跨域 HTTP 图片等混合内容
+  },
   plugins: {
     CapacitorHttp: {
       enabled: true   // 将 fetch/XHR 路由到原生 HTTP，绕过 WebView 混合内容限制

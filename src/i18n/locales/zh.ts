@@ -148,10 +148,11 @@ export default {
     "invalid.server.url": "服务器地址格式错误，应为 http(s)://域名 且末尾无斜杠",
     "invalid.input": "请填写完整信息",
 
-    // 网络层错误（前端自定义，非后端返回）
-    "network.timeout": "请求超时，请检查网络",
-    "network.disconnected": "网络连接失败，请检查网络或服务器地址",
-    "network.error": "网络异常，请稍后重试",
+// 网络层错误（前端自定义，非后端返回）
+	"network.timeout": "请求超时，请检查网络",
+	"network.disconnected": "网络连接失败，请检查网络或服务器地址",
+	"network.error": "网络异常，请稍后重试",
+	"session.expired": "登录已过期，请重新登录",
 
     // 后端 logout 成功返回的 msg（兜底用，实际不弹 toast）
     success: "操作成功",

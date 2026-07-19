@@ -147,10 +147,11 @@ export default {
     "invalid.server.url": "Invalid server URL, expected http(s)://domain without trailing slash",
     "invalid.input": "Please fill in all fields",
 
-    // Network errors (frontend)
-    "network.timeout": "Request timed out, please check your network",
-    "network.disconnected": "Network failed, please check network or server URL",
-    "network.error": "Network error, please try again later",
+// Network errors (frontend)
+	    "network.timeout": "Request timed out, please check your network",
+	    "network.disconnected": "Network failed, please check network or server URL",
+	    "network.error": "Network error, please try again later",
+	    "session.expired": "Session expired, please log in again",
 
     // Logout fallback
     success: "Operation successful",
