@@ -1,7 +1,7 @@
 {
   "name": "znote-mobile",
   "private": true,
-  "version": "0.3.2",
+  "version": "0.3.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -30,6 +30,7 @@
     "axios": "^1.18.1",
     "bytemd": "^1.22.0",
     "ionicons": "^7.0.0",
+    "mermaid": "^11.16.0",
     "modern-screenshot": "^4.7.0",
     "pinia": "^3.0.4",
     "vue": "^3.3.0",

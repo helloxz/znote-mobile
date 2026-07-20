@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'ZNote Mobile',
   webDir: 'dist',
   server: {
-    cleartext: true   // 允许 HTTP 通信（Android 默认禁止明文流量）
+    cleartext: true,          // 允许 HTTP 通信（Android 默认禁止明文流量）
+    androidScheme: 'http'     // 强制 Capacitor 本地服务器使用 HTTP（默认 HTTPS）
   },
   android: {
     allowMixedContent: true  // 允许 WebView 加载跨域 HTTP 图片等混合内容
